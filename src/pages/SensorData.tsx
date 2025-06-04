@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -78,7 +77,7 @@ const SensorData = () => {
     { id: 'thruster_4_power', name: 'Thruster 4 Power', unit: '%', color: '#3742fa', category: 'DP System' },
   ];
 
-  // Operating modes with time periods and colors
+  // Operating modes with time periods and solid colors (no gradients)
   const operatingModes = [
     { mode: 'Transit', start: 0, end: 20, color: '#3b82f6' },
     { mode: 'DP Operations', start: 20, end: 60, color: '#ef4444' },
@@ -86,14 +85,20 @@ const SensorData = () => {
     { mode: 'Transit', start: 80, end: 100, color: '#3b82f6' },
   ];
 
-  // Generate sample sensor data with normalized values (0-100)
+  // Generate sample sensor data with actual timestamps
   const generateSensorData = () => {
     const data = [];
+    const startDate = new Date(dateRange.from);
+    const endDate = new Date(dateRange.to);
+    const timeDiff = endDate.getTime() - startDate.getTime();
+    
     for (let i = 0; i <= 100; i++) {
-      const timestamp = new Date(2024, 0, 1 + (i / 100) * 6).toISOString();
+      const currentTime = new Date(startDate.getTime() + (i / 100) * timeDiff);
+      const timestamp = currentTime.toISOString();
       const dataPoint: any = {
         timestamp,
         time_percent: i,
+        date_time: currentTime,
       };
 
       // Add normalized sensor values based on operating modes
@@ -153,6 +158,10 @@ const SensorData = () => {
     );
   };
 
+  const handleSensorClick = (sensorId: string) => {
+    navigate(`/sensor-details/${sensorId}`);
+  };
+
   const chartConfig = {
     value: {
       label: "Normalized Value",
@@ -187,6 +196,35 @@ const SensorData = () => {
                 </h1>
                 <p className="text-slate-600">Real-time and historical sensor monitoring</p>
               </div>
+            </div>
+            
+            {/* Sensor Selection Dropdown */}
+            <div className="w-64">
+              <Select onValueChange={(value) => handleSensorToggle(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Add sensor to chart" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(sensorsByCategory).map(([category, categorySensors]) => (
+                    <div key={category}>
+                      <div className="px-2 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                        {category}
+                      </div>
+                      {categorySensors.map(sensor => (
+                        <SelectItem key={sensor.id} value={sensor.id}>
+                          <div className="flex items-center space-x-2">
+                            <div 
+                              className="w-3 h-3 rounded"
+                              style={{ backgroundColor: sensor.color }}
+                            />
+                            <span>{sensor.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </div>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -237,36 +275,35 @@ const SensorData = () => {
             </div>
           </div>
 
-          {/* Sensor Selection by Category */}
+          {/* Selected Sensors Display */}
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-2 block">Select Sensors to Compare</label>
-            <div className="space-y-4">
-              {Object.entries(sensorsByCategory).map(([category, categorySensors]) => (
-                <div key={category}>
-                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{category}</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {categorySensors.map(sensor => (
-                      <div key={sensor.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={sensor.id}
-                          checked={selectedSensors.includes(sensor.id)}
-                          onCheckedChange={() => handleSensorToggle(sensor.id)}
-                        />
-                        <label
-                          htmlFor={sensor.id}
-                          className="text-sm text-slate-700 cursor-pointer flex items-center space-x-2"
-                        >
-                          <div 
-                            className="w-3 h-3 rounded"
-                            style={{ backgroundColor: sensor.color }}
-                          />
-                          <span>{sensor.name}</span>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+            <label className="text-sm font-medium text-slate-700 mb-2 block">Selected Sensors (Click to view details)</label>
+            <div className="flex flex-wrap gap-2">
+              {selectedSensors.map(sensorId => {
+                const sensor = sensors.find(s => s.id === sensorId);
+                return sensor ? (
+                  <button
+                    key={sensorId}
+                    onClick={() => handleSensorClick(sensorId)}
+                    className="flex items-center space-x-2 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 transition-colors"
+                  >
+                    <div 
+                      className="w-3 h-3 rounded"
+                      style={{ backgroundColor: sensor.color }}
+                    />
+                    <span className="text-sm text-slate-700">{sensor.name}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSensorToggle(sensorId);
+                      }}
+                      className="ml-2 text-slate-400 hover:text-slate-600"
+                    >
+                      ×
+                    </button>
+                  </button>
+                ) : null;
+              })}
             </div>
           </div>
         </div>
@@ -302,32 +339,31 @@ const SensorData = () => {
             <ChartContainer config={chartConfig} className="h-[600px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={sensorData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <defs>
-                    {operatingModes.map((mode, index) => (
-                      <linearGradient key={index} id={`mode-${index}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={mode.color} stopOpacity={0.3} />
-                        <stop offset="100%" stopColor={mode.color} stopOpacity={0.1} />
-                      </linearGradient>
-                    ))}
-                  </defs>
-                  
-                  {/* Background areas for operating modes */}
-                  {operatingModes.map((mode, index) => (
-                    <ReferenceArea
-                      key={index}
-                      x1={mode.start}
-                      x2={mode.end}
-                      fill={`url(#mode-${index})`}
-                      fillOpacity={1}
-                    />
-                  ))}
+                  {/* Background areas for operating modes - solid colors only */}
+                  {operatingModes.map((mode, index) => {
+                    const startDate = new Date(dateRange.from);
+                    const endDate = new Date(dateRange.to);
+                    const timeDiff = endDate.getTime() - startDate.getTime();
+                    const startTime = new Date(startDate.getTime() + (mode.start / 100) * timeDiff);
+                    const endTime = new Date(startDate.getTime() + (mode.end / 100) * timeDiff);
+                    
+                    return (
+                      <ReferenceArea
+                        key={index}
+                        x1={startTime.getTime()}
+                        x2={endTime.getTime()}
+                        fill={mode.color}
+                        fillOpacity={0.2}
+                      />
+                    );
+                  })}
                   
                   <XAxis 
-                    dataKey="time_percent" 
+                    dataKey="date_time" 
                     type="number"
-                    scale="linear"
-                    domain={[0, 100]}
-                    tickFormatter={(value) => `${value}%`}
+                    scale="time"
+                    domain={['dataMin', 'dataMax']}
+                    tickFormatter={(value) => new Date(value).toLocaleDateString()}
                   />
                   <YAxis 
                     domain={[0, 100]}
@@ -352,13 +388,18 @@ const SensorData = () => {
                   <ChartTooltip 
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length) {
+                        const date = new Date(label);
+                        const timePercent = ((date.getTime() - new Date(dateRange.from).getTime()) / 
+                          (new Date(dateRange.to).getTime() - new Date(dateRange.from).getTime())) * 100;
                         const currentMode = operatingModes.find(mode => 
-                          label >= mode.start && label < mode.end
+                          timePercent >= mode.start && timePercent < mode.end
                         )?.mode || 'Unknown';
                         
                         return (
                           <div className="bg-white p-3 border rounded shadow-lg">
-                            <p className="font-medium text-slate-900">Time: {label}%</p>
+                            <p className="font-medium text-slate-900">
+                              {date.toLocaleDateString()} {date.toLocaleTimeString()}
+                            </p>
                             <p className="text-sm text-slate-600 mb-2">Mode: {currentMode}</p>
                             {payload.map((entry, index) => {
                               const sensor = sensors.find(s => s.id === entry.dataKey);
