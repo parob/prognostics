@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
@@ -196,7 +195,7 @@ const SensorChart: React.FC<SensorChartProps> = ({
                     yAxisId={group.yAxisId}
                     orientation={group.position}
                     domain={[minDomain, maxDomain]}
-                    tickFormatter={(value) => `${Math.round(value)}`}
+                    tickFormatter={(value) => `${Math.round(value)} ${unit}`}
                     dx={group.offset ? (group.position === 'left' ? -group.offset : group.offset) : 0}
                   />
                 );
