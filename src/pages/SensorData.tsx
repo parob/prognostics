@@ -94,11 +94,10 @@ const SensorData = () => {
     
     for (let i = 0; i <= 100; i++) {
       const currentTime = new Date(startDate.getTime() + (i / 100) * timeDiff);
-      const timestamp = currentTime.toISOString();
       const dataPoint: any = {
-        timestamp,
+        timestamp: currentTime.getTime(), // Use timestamp for X-axis
         time_percent: i,
-        date_time: currentTime,
+        formatted_time: currentTime.toISOString(),
       };
 
       // Add normalized sensor values based on operating modes
@@ -337,92 +336,96 @@ const SensorData = () => {
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[600px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={sensorData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  {/* Background areas for operating modes - solid colors only */}
-                  {operatingModes.map((mode, index) => {
-                    const startDate = new Date(dateRange.from);
-                    const endDate = new Date(dateRange.to);
-                    const timeDiff = endDate.getTime() - startDate.getTime();
-                    const startTime = new Date(startDate.getTime() + (mode.start / 100) * timeDiff);
-                    const endTime = new Date(startDate.getTime() + (mode.end / 100) * timeDiff);
-                    
-                    return (
-                      <ReferenceArea
-                        key={index}
-                        x1={startTime.getTime()}
-                        x2={endTime.getTime()}
-                        fill={mode.color}
-                        fillOpacity={0.2}
-                      />
-                    );
-                  })}
+              <LineChart 
+                data={sensorData} 
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                width={800}
+                height={600}
+              >
+                {/* Background areas for operating modes */}
+                {operatingModes.map((mode, index) => {
+                  const startDate = new Date(dateRange.from);
+                  const endDate = new Date(dateRange.to);
+                  const timeDiff = endDate.getTime() - startDate.getTime();
+                  const startTime = startDate.getTime() + (mode.start / 100) * timeDiff;
+                  const endTime = startDate.getTime() + (mode.end / 100) * timeDiff;
                   
-                  <XAxis 
-                    dataKey="date_time" 
-                    type="number"
-                    scale="time"
-                    domain={['dataMin', 'dataMax']}
-                    tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                  />
-                  <YAxis 
-                    domain={[0, 100]}
-                    tickFormatter={(value) => `${value}%`}
-                  />
-                  
-                  {selectedSensors.map(sensorId => {
-                    const sensor = sensors.find(s => s.id === sensorId);
-                    return sensor ? (
-                      <Line
-                        key={sensorId}
-                        type="monotone"
-                        dataKey={sensorId}
-                        stroke={sensor.color}
-                        strokeWidth={2}
-                        dot={false}
-                        name={sensor.name}
-                      />
-                    ) : null;
-                  })}
-                  
-                  <ChartTooltip 
-                    content={({ active, payload, label }) => {
-                      if (active && payload && payload.length) {
-                        const date = new Date(label);
-                        const timePercent = ((date.getTime() - new Date(dateRange.from).getTime()) / 
-                          (new Date(dateRange.to).getTime() - new Date(dateRange.from).getTime())) * 100;
-                        const currentMode = operatingModes.find(mode => 
-                          timePercent >= mode.start && timePercent < mode.end
-                        )?.mode || 'Unknown';
-                        
-                        return (
-                          <div className="bg-white p-3 border rounded shadow-lg">
-                            <p className="font-medium text-slate-900">
-                              {date.toLocaleDateString()} {date.toLocaleTimeString()}
-                            </p>
-                            <p className="text-sm text-slate-600 mb-2">Mode: {currentMode}</p>
-                            {payload.map((entry, index) => {
-                              const sensor = sensors.find(s => s.id === entry.dataKey);
-                              return sensor ? (
-                                <div key={index} className="flex items-center space-x-2">
-                                  <div 
-                                    className="w-3 h-3 rounded"
-                                    style={{ backgroundColor: sensor.color }}
-                                  />
-                                  <span className="text-sm">
-                                    {sensor.name}: {Math.round(entry.value as number)}% ({sensor.unit})
-                                  </span>
-                                </div>
-                              ) : null;
-                            })}
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+                  return (
+                    <ReferenceArea
+                      key={index}
+                      x1={startTime}
+                      x2={endTime}
+                      fill={mode.color}
+                      fillOpacity={0.2}
+                    />
+                  );
+                })}
+                
+                <XAxis 
+                  dataKey="timestamp" 
+                  type="number"
+                  scale="time"
+                  domain={['dataMin', 'dataMax']}
+                  tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                />
+                <YAxis 
+                  domain={[0, 100]}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                
+                {selectedSensors.map(sensorId => {
+                  const sensor = sensors.find(s => s.id === sensorId);
+                  return sensor ? (
+                    <Line
+                      key={sensorId}
+                      type="monotone"
+                      dataKey={sensorId}
+                      stroke={sensor.color}
+                      strokeWidth={2}
+                      dot={false}
+                      name={sensor.name}
+                    />
+                  ) : null;
+                })}
+                
+                <ChartTooltip 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const timestamp = Number(label);
+                      const date = new Date(timestamp);
+                      const timePercent = ((timestamp - new Date(dateRange.from).getTime()) / 
+                        (new Date(dateRange.to).getTime() - new Date(dateRange.from).getTime())) * 100;
+                      const currentMode = operatingModes.find(mode => 
+                        timePercent >= mode.start && timePercent < mode.end
+                      )?.mode || 'Unknown';
+                      
+                      return (
+                        <div className="bg-white p-3 border rounded shadow-lg">
+                          <p className="font-medium text-slate-900">
+                            {date.toLocaleDateString()} {date.toLocaleTimeString()}
+                          </p>
+                          <p className="text-sm text-slate-600 mb-2">Mode: {currentMode}</p>
+                          {payload.map((entry, index) => {
+                            const sensor = sensors.find(s => s.id === entry.dataKey);
+                            return sensor ? (
+                              <div key={index} className="flex items-center space-x-2">
+                                <div 
+                                  className="w-3 h-3 rounded"
+                                  style={{ backgroundColor: sensor.color }}
+                                />
+                                <span className="text-sm">
+                                  {sensor.name}: {Math.round(entry.value as number)}% ({sensor.unit})
+                                </span>
+                              </div>
+                            ) : null;
+                          })}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </LineChart>
             </ChartContainer>
           </CardContent>
         </Card>
