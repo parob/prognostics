@@ -39,22 +39,22 @@ const SensorChart: React.FC<SensorChartProps> = ({
     },
   };
 
-  // Prepare operating mode data for area charts
-  const operatingModeData = sensorData.map(dataPoint => {
-    const modeData: any = { time_percent: dataPoint.time_percent };
+  // Enhance sensor data with operating mode information
+  const enhancedSensorData = sensorData.map(dataPoint => {
+    const enhancedPoint = { ...dataPoint };
     
     // Find which operating mode this time point belongs to
     const currentMode = operatingModes.find(mode => 
       dataPoint.time_percent >= mode.start && dataPoint.time_percent < mode.end
     );
     
-    // Set values for area charts - use a high value to fill the background
+    // Add operating mode data for background areas
     operatingModes.forEach(mode => {
-      modeData[`mode_${mode.mode.replace(/\s+/g, '_')}`] = 
+      enhancedPoint[`mode_${mode.mode.replace(/\s+/g, '_')}`] = 
         currentMode?.mode === mode.mode ? 1000 : 0;
     });
     
-    return modeData;
+    return enhancedPoint;
   });
 
   return (
@@ -114,7 +114,7 @@ const SensorChart: React.FC<SensorChartProps> = ({
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height={600}>
             <ComposedChart 
-              data={sensorData} 
+              data={enhancedSensorData} 
               margin={chartMargin}
             >
               {/* Operating Mode Background Areas */}
@@ -123,7 +123,6 @@ const SensorChart: React.FC<SensorChartProps> = ({
                   key={`mode-${index}`}
                   type="stepAfter"
                   dataKey={`mode_${mode.mode.replace(/\s+/g, '_')}`}
-                  data={operatingModeData}
                   fill={mode.color}
                   fillOpacity={0.2}
                   stroke="none"
