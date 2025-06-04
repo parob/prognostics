@@ -1,12 +1,15 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const Index = () => {
   const [selectedVessel, setSelectedVessel] = useState<string | null>(null);
+  const [vesselFilter, setVesselFilter] = useState<string>('all');
 
   // Individual vessel data
   const vessels = [
@@ -126,8 +129,11 @@ const Index = () => {
     },
   ];
 
-  // Fleet overview data for spider chart - showing all vessels
-  const fleetOverviewData = vessels.map(vessel => ({
+  // Filter vessels based on selection
+  const filteredVessels = vesselFilter === 'all' ? vessels : vessels.filter(vessel => vessel.id === vesselFilter);
+
+  // Fleet overview data for spider chart - showing filtered vessels
+  const fleetOverviewData = filteredVessels.map(vessel => ({
     metric: vessel.name,
     value: Math.round((vessel.efficiency + vessel.emissions + vessel.maintenance + vessel.operations) / 4),
     fullMark: 100
@@ -164,6 +170,26 @@ const Index = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Digital Fleet Platform</h1>
           <p className="text-slate-600">Monitor your fleet performance, optimize fuel efficiency, and reduce emissions</p>
+        </div>
+
+        {/* Vessel Filter */}
+        <div className="mb-6">
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-slate-700">Filter Vessels:</label>
+            <Select value={vesselFilter} onValueChange={setVesselFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select vessels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Vessels</SelectItem>
+                {vessels.map((vessel) => (
+                  <SelectItem key={vessel.id} value={vessel.id}>
+                    {vessel.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Fleet Overview Section */}
@@ -205,25 +231,25 @@ const Index = () => {
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">Total Vessels</span>
-                <span className="font-semibold">{vessels.length}</span>
+                <span className="font-semibold">{filteredVessels.length}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">Active</span>
-                <span className="font-semibold text-green-600">{vessels.filter(v => v.status === 'active').length}</span>
+                <span className="font-semibold text-green-600">{filteredVessels.filter(v => v.status === 'active').length}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">In Maintenance</span>
-                <span className="font-semibold text-orange-600">{vessels.filter(v => v.status === 'maintenance').length}</span>
+                <span className="font-semibold text-orange-600">{filteredVessels.filter(v => v.status === 'maintenance').length}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">Idle</span>
-                <span className="font-semibold text-gray-600">{vessels.filter(v => v.status === 'idle').length}</span>
+                <span className="font-semibold text-gray-600">{filteredVessels.filter(v => v.status === 'idle').length}</span>
               </div>
               <div className="pt-2 border-t">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-slate-600">Avg. Efficiency</span>
                   <span className="font-semibold">
-                    {Math.round(vessels.reduce((acc, v) => acc + v.efficiency, 0) / vessels.length)}%
+                    {filteredVessels.length > 0 ? Math.round(filteredVessels.reduce((acc, v) => acc + v.efficiency, 0) / filteredVessels.length) : 0}%
                   </span>
                 </div>
               </div>
@@ -237,7 +263,7 @@ const Index = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {vessels.map((vessel) => (
+          {filteredVessels.map((vessel) => (
             <Card key={vessel.id} className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
