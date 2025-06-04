@@ -13,35 +13,46 @@ interface OperatingModeBackgroundProps {
   width: number;
   height: number;
   xScale: any;
+  margin?: { top: number; right: number; bottom: number; left: number };
 }
 
 const OperatingModeBackground: React.FC<OperatingModeBackgroundProps> = ({
   modes,
   width,
   height,
-  xScale
+  xScale,
+  margin = { top: 20, right: 80, bottom: 60, left: 80 }
 }) => {
+  // Calculate the actual plotting area dimensions
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  
   return (
-    <g className="operating-mode-backgrounds">
+    <g className="operating-mode-backgrounds" transform={`translate(${margin.left},${margin.top})`}>
       {modes.map((mode, index) => {
         const x1 = xScale(mode.start);
         const x2 = xScale(mode.end);
         const rectWidth = x2 - x1;
         
+        // Ensure the rectangle stays within the plot area
+        const clampedX = Math.max(0, Math.min(x1, plotWidth));
+        const clampedWidth = Math.max(0, Math.min(rectWidth, plotWidth - clampedX));
+        
         console.log(`Background rect for ${mode.mode}:`, {
-          x: x1,
-          width: rectWidth,
-          height,
-          color: mode.color
+          x: clampedX,
+          width: clampedWidth,
+          height: plotHeight,
+          color: mode.color,
+          plotArea: { width: plotWidth, height: plotHeight }
         });
         
         return (
           <rect
             key={`${mode.mode}-${index}`}
-            x={x1}
+            x={clampedX}
             y={0}
-            width={rectWidth}
-            height={height}
+            width={clampedWidth}
+            height={plotHeight}
             fill={mode.color}
             fillOpacity={0.2}
             stroke="none"
