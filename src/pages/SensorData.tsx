@@ -130,12 +130,21 @@ const SensorData = () => {
     const endDate = new Date(dateRange.to);
     const timeDiff = endDate.getTime() - startDate.getTime();
     
-    return operatingModes.map(mode => ({
+    const ranges = operatingModes.map(mode => ({
       ...mode,
       startTime: startDate.getTime() + (mode.start / 100) * timeDiff,
       endTime: startDate.getTime() + (mode.end / 100) * timeDiff,
     }));
-  }, [dateRange]);
+    
+    console.log('Date range:', { from: dateRange.from, to: dateRange.to });
+    console.log('Start date timestamp:', startDate.getTime());
+    console.log('End date timestamp:', endDate.getTime());
+    console.log('Time diff:', timeDiff);
+    console.log('Operating mode ranges:', ranges);
+    console.log('Sample data timestamps:', sensorData.slice(0, 5).map(d => ({ timestamp: d.timestamp, percent: d.time_percent })));
+    
+    return ranges;
+  }, [dateRange, sensorData]);
 
   // Group sensors by unit and assign Y-axis positions
   const unitGroups = useMemo(() => {
@@ -417,16 +426,24 @@ const SensorData = () => {
                 margin={{ top: 20, right: 80, left: 80, bottom: 60 }}
               >
                 {/* Background areas for operating modes - render first so they appear behind lines */}
-                {operatingModeRanges.map((mode, index) => (
-                  <ReferenceArea
-                    key={`${mode.mode}-${index}`}
-                    x1={mode.startTime}
-                    x2={mode.endTime}
-                    fill={mode.color}
-                    fillOpacity={0.15}
-                    stroke="none"
-                  />
-                ))}
+                {operatingModeRanges.map((mode, index) => {
+                  console.log(`Rendering ReferenceArea ${index}:`, {
+                    mode: mode.mode,
+                    x1: mode.startTime,
+                    x2: mode.endTime,
+                    color: mode.color
+                  });
+                  return (
+                    <ReferenceArea
+                      key={`${mode.mode}-${index}`}
+                      x1={mode.startTime}
+                      x2={mode.endTime}
+                      fill={mode.color}
+                      fillOpacity={0.3}
+                      stroke="none"
+                    />
+                  );
+                })}
                 
                 <XAxis 
                   dataKey="timestamp" 
