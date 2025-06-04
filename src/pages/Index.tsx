@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle, Gauge, Activity, Shield } from 'lucide-react';
+import RadialGauge from '@/components/ui/radial-gauge';
 
 const Index = () => {
   const [selectedVessel, setSelectedVessel] = useState<string | null>(null);
@@ -133,22 +134,21 @@ const Index = () => {
 
   // Fleet overview data - changes based on number of vessels selected
   const getFleetOverviewData = () => {
-    if (filteredVessels.length === 2) {
-      // For 2 vessels, show average subsystem performance
-      const subsystems = ['Engine', 'Fuel', 'Emissions', 'Navigation', 'Safety', 'Maintenance'];
-      return subsystems.map(subsystem => {
-        const avgValue = Math.round(
-          filteredVessels.reduce((acc, vessel) => {
-            const subsystemData = vessel.data.find(d => d.metric === subsystem);
-            return acc + (subsystemData ? subsystemData.value : 0);
-          }, 0) / filteredVessels.length
-        );
-        return {
-          metric: subsystem,
-          value: avgValue,
-          fullMark: 100
-        };
-      });
+    if (filteredVessels.length === 1) {
+      // For single vessel, show overall performance score
+      const vessel = filteredVessels[0];
+      return [{
+        metric: vessel.name,
+        value: Math.round((vessel.efficiency + vessel.emissions + vessel.maintenance + vessel.operations) / 4),
+        fullMark: 100
+      }];
+    } else if (filteredVessels.length === 2) {
+      // For 2 vessels, show their overall scores
+      return filteredVessels.map(vessel => ({
+        metric: vessel.name,
+        value: Math.round((vessel.efficiency + vessel.emissions + vessel.maintenance + vessel.operations) / 4),
+        fullMark: 100
+      }));
     } else {
       // For 3+ vessels, show vessel overview
       return filteredVessels.map(vessel => ({
@@ -163,9 +163,9 @@ const Index = () => {
 
   const getOverviewTitle = () => {
     if (filteredVessels.length === 1) {
-      return `${filteredVessels[0].name} - Performance Dashboard`;
+      return `${filteredVessels[0].name} - Overall Performance`;
     } else if (filteredVessels.length === 2) {
-      return `${filteredVessels[0].name} & ${filteredVessels[1].name} - Avg. Subsystem Performance`;
+      return `${filteredVessels[0].name} & ${filteredVessels[1].name} - Performance Comparison`;
     } else {
       return 'Fleet Performance Overview';
     }
@@ -299,8 +299,8 @@ const Index = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {filteredVessels.length === 1 ? (
-                <SingleVesselOverview vessel={filteredVessels[0]} />
+              {filteredVessels.length <= 2 ? (
+                <RadialGauge data={fleetOverviewData} className="h-[300px]" />
               ) : (
                 <ChartContainer config={chartConfig} className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
