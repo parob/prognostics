@@ -9,6 +9,8 @@ import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
 import SensorData from "./pages/SensorData";
 import SensorDetails from "./pages/SensorDetails";
+import SensorCreate from "./pages/SensorCreate";
+import SensorList from "./pages/SensorList";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/sensor-data" element={<SensorData />} />
                 <Route path="/sensor-details/:sensorId" element={<SensorDetails />} />
+                <Route path="/sensors/create" element={<SensorCreate />} />
+                <Route path="/sensors/list" element={<SensorList />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
