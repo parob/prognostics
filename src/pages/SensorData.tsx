@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -123,28 +124,6 @@ const SensorData = () => {
   };
 
   const sensorData = generateSensorData();
-
-  // Calculate timestamp ranges for operating modes
-  const operatingModeRanges = useMemo(() => {
-    const startDate = new Date(dateRange.from);
-    const endDate = new Date(dateRange.to);
-    const timeDiff = endDate.getTime() - startDate.getTime();
-    
-    const ranges = operatingModes.map(mode => ({
-      ...mode,
-      startTime: startDate.getTime() + (mode.start / 100) * timeDiff,
-      endTime: startDate.getTime() + (mode.end / 100) * timeDiff,
-    }));
-    
-    console.log('Date range:', { from: dateRange.from, to: dateRange.to });
-    console.log('Start date timestamp:', startDate.getTime());
-    console.log('End date timestamp:', endDate.getTime());
-    console.log('Time diff:', timeDiff);
-    console.log('Operating mode ranges:', ranges);
-    console.log('Sample data timestamps:', sensorData.slice(0, 5).map(d => ({ timestamp: d.timestamp, percent: d.time_percent })));
-    
-    return ranges;
-  }, [dateRange, sensorData]);
 
   // Group sensors by unit and assign Y-axis positions
   const unitGroups = useMemo(() => {
@@ -420,124 +399,128 @@ const SensorData = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={600}>
-              <LineChart 
-                data={sensorData} 
-                margin={{ top: 20, right: 80, left: 80, bottom: 60 }}
-              >
-                {/* Background areas for operating modes - render first so they appear behind lines */}
-                {operatingModeRanges.map((mode, index) => {
-                  console.log(`Rendering ReferenceArea ${index}:`, {
-                    mode: mode.mode,
-                    x1: mode.startTime,
-                    x2: mode.endTime,
-                    color: mode.color
-                  });
-                  return (
-                    <ReferenceArea
-                      key={`${mode.mode}-${index}`}
-                      x1={mode.startTime}
-                      x2={mode.endTime}
-                      fill={mode.color}
-                      fillOpacity={0.3}
-                      stroke="none"
-                    />
-                  );
-                })}
-                
-                <XAxis 
-                  dataKey="timestamp" 
-                  type="number"
-                  scale="time"
-                  domain={['dataMin', 'dataMax']}
-                  tickFormatter={(value) => {
-                    const date = new Date(value);
-                    return `${date.getMonth() + 1}/${date.getDate()}`;
-                  }}
-                />
-                
-                {/* Generate Y-axes for each unit group */}
-                {Object.entries(unitGroups).map(([unit, group]) => {
-                  const [minDomain, maxDomain] = getAxisDomain(unit);
-                  return (
-                    <YAxis
-                      key={group.yAxisId}
-                      yAxisId={group.yAxisId}
-                      orientation={group.position}
-                      domain={[minDomain, maxDomain]}
-                      tickFormatter={(value) => `${Math.round(value)} ${unit}`}
-                      label={{ 
-                        value: unit, 
-                        angle: group.position === 'left' ? -90 : 90, 
-                        position: 'insideLeft',
-                        style: { textAnchor: 'middle' }
-                      }}
-                      dx={group.offset ? (group.position === 'left' ? -group.offset : group.offset) : 0}
-                    />
-                  );
-                })}
-                
-                {/* Generate lines for each selected sensor */}
-                {selectedSensors.map(sensorId => {
-                  const sensor = sensors.find(s => s.id === sensorId);
-                  if (!sensor) return null;
+            <ChartContainer config={chartConfig}>
+              <ResponsiveContainer width="100%" height={600}>
+                <LineChart 
+                  data={sensorData} 
+                  margin={{ top: 20, right: 80, left: 80, bottom: 60 }}
+                >
+                  {/* Background areas for operating modes - using time_percent for coordinates */}
+                  {operatingModes.map((mode, index) => {
+                    console.log(`Rendering background area for ${mode.mode}:`, {
+                      start: mode.start,
+                      end: mode.end,
+                      color: mode.color
+                    });
+                    return (
+                      <ReferenceArea
+                        key={`${mode.mode}-${index}`}
+                        x1={mode.start}
+                        x2={mode.end}
+                        fill={mode.color}
+                        fillOpacity={0.2}
+                        stroke="none"
+                      />
+                    );
+                  })}
                   
-                  const yAxisId = unitGroups[sensor.unit]?.yAxisId;
-                  if (!yAxisId) return null;
+                  <XAxis 
+                    dataKey="time_percent"
+                    type="number"
+                    domain={[0, 100]}
+                    tickFormatter={(value) => {
+                      const startDate = new Date(dateRange.from);
+                      const endDate = new Date(dateRange.to);
+                      const timeDiff = endDate.getTime() - startDate.getTime();
+                      const currentTime = new Date(startDate.getTime() + (value / 100) * timeDiff);
+                      return `${currentTime.getMonth() + 1}/${currentTime.getDate()}`;
+                    }}
+                  />
                   
-                  return (
-                    <Line
-                      key={sensorId}
-                      type="monotone"
-                      dataKey={sensorId}
-                      stroke={sensor.color}
-                      strokeWidth={2}
-                      dot={false}
-                      name={sensor.name}
-                      yAxisId={yAxisId}
-                    />
-                  );
-                })}
-                
-                <ChartTooltip 
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      const timestamp = Number(label);
-                      const date = new Date(timestamp);
-                      const timePercent = ((timestamp - new Date(dateRange.from).getTime()) / 
-                        (new Date(dateRange.to).getTime() - new Date(dateRange.from).getTime())) * 100;
-                      const currentMode = operatingModes.find(mode => 
-                        timePercent >= mode.start && timePercent < mode.end
-                      )?.mode || 'Unknown';
-                      
-                      return (
-                        <div className="bg-white p-3 border rounded shadow-lg">
-                          <p className="font-medium text-slate-900">
-                            {date.toLocaleDateString()} {date.toLocaleTimeString()}
-                          </p>
-                          <p className="text-sm text-slate-600 mb-2">Mode: {currentMode}</p>
-                          {payload.map((entry, index) => {
-                            const sensor = sensors.find(s => s.id === entry.dataKey);
-                            return sensor ? (
-                              <div key={index} className="flex items-center space-x-2">
-                                <div 
-                                  className="w-3 h-3 rounded"
-                                  style={{ backgroundColor: sensor.color }}
-                                />
-                                <span className="text-sm">
-                                  {sensor.name}: {(entry.value as number).toFixed(1)} {sensor.unit}
-                                </span>
-                              </div>
-                            ) : null;
-                          })}
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+                  {/* Generate Y-axes for each unit group */}
+                  {Object.entries(unitGroups).map(([unit, group]) => {
+                    const [minDomain, maxDomain] = getAxisDomain(unit);
+                    return (
+                      <YAxis
+                        key={group.yAxisId}
+                        yAxisId={group.yAxisId}
+                        orientation={group.position}
+                        domain={[minDomain, maxDomain]}
+                        tickFormatter={(value) => `${Math.round(value)} ${unit}`}
+                        label={{ 
+                          value: unit, 
+                          angle: group.position === 'left' ? -90 : 90, 
+                          position: 'insideLeft',
+                          style: { textAnchor: 'middle' }
+                        }}
+                        dx={group.offset ? (group.position === 'left' ? -group.offset : group.offset) : 0}
+                      />
+                    );
+                  })}
+                  
+                  {/* Generate lines for each selected sensor */}
+                  {selectedSensors.map(sensorId => {
+                    const sensor = sensors.find(s => s.id === sensorId);
+                    if (!sensor) return null;
+                    
+                    const yAxisId = unitGroups[sensor.unit]?.yAxisId;
+                    if (!yAxisId) return null;
+                    
+                    return (
+                      <Line
+                        key={sensorId}
+                        type="monotone"
+                        dataKey={sensorId}
+                        stroke={sensor.color}
+                        strokeWidth={2}
+                        dot={false}
+                        name={sensor.name}
+                        yAxisId={yAxisId}
+                      />
+                    );
+                  })}
+                  
+                  <ChartTooltip 
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        const timePercent = Number(label);
+                        const startDate = new Date(dateRange.from);
+                        const endDate = new Date(dateRange.to);
+                        const timeDiff = endDate.getTime() - startDate.getTime();
+                        const currentTime = new Date(startDate.getTime() + (timePercent / 100) * timeDiff);
+                        const currentMode = operatingModes.find(mode => 
+                          timePercent >= mode.start && timePercent < mode.end
+                        )?.mode || 'Unknown';
+                        
+                        return (
+                          <div className="bg-white p-3 border rounded shadow-lg">
+                            <p className="font-medium text-slate-900">
+                              {currentTime.toLocaleDateString()} {currentTime.toLocaleTimeString()}
+                            </p>
+                            <p className="text-sm text-slate-600 mb-2">Mode: {currentMode}</p>
+                            {payload.map((entry, index) => {
+                              const sensor = sensors.find(s => s.id === entry.dataKey);
+                              return sensor ? (
+                                <div key={index} className="flex items-center space-x-2">
+                                  <div 
+                                    className="w-3 h-3 rounded"
+                                    style={{ backgroundColor: sensor.color }}
+                                  />
+                                  <span className="text-sm">
+                                    {sensor.name}: {(entry.value as number).toFixed(1)} {sensor.unit}
+                                  </span>
+                                </div>
+                              ) : null;
+                            })}
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
