@@ -415,7 +415,7 @@ const Index = () => {
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <div>
+          <div className="-ml-0.5">
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Armada Fleet</h1>
             <p className="text-slate-600">Monitor your fleet performance, optimize fuel efficiency, and reduce emissions</p>
           </div>
