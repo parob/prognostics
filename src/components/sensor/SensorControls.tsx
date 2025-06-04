@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from 'lucide-react';
+import { Calendar, Info } from 'lucide-react';
 import { vessels, sensors, type Vessel, type Sensor } from '@/data/sensorDefinitions';
 
 interface SensorControlsProps {
@@ -153,26 +153,35 @@ const SensorControls: React.FC<SensorControlsProps> = ({
           {selectedSensors.map(sensorId => {
             const sensor = sensors.find(s => s.id === sensorId);
             return sensor ? (
-              <button
+              <div
                 key={sensorId}
-                onClick={() => onSensorClick(sensorId)}
-                className="flex items-center space-x-2 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 transition-colors"
+                className="flex items-center space-x-2 bg-white border border-slate-300 rounded-lg px-3 py-2 group"
               >
                 <div 
                   className="w-3 h-3 rounded"
                   style={{ backgroundColor: sensor.color }}
                 />
-                <span className="text-sm text-slate-700">{sensor.name} ({sensor.unit})</span>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSensorToggle(sensorId);
-                  }}
-                  className="ml-2 text-slate-400 hover:text-slate-600"
+                  onClick={() => onSensorToggle(sensorId)}
+                  className="text-sm text-slate-700 hover:text-slate-900 transition-colors"
+                >
+                  {sensor.name} ({sensor.unit})
+                </button>
+                <button
+                  onClick={() => onSensorClick(sensorId)}
+                  className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
+                  title="View sensor details"
+                >
+                  <Info className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={() => onSensorToggle(sensorId)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                  title="Remove sensor"
                 >
                   ×
                 </button>
-              </button>
+              </div>
             ) : null;
           })}
         </div>
