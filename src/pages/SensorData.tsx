@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Database } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SensorControls from '@/components/sensor/SensorControls';
-import SensorLegends from '@/components/sensor/SensorLegends';
 import SensorChart from '@/components/sensor/SensorChart';
 import { useSensorData } from '@/hooks/useSensorData';
 
@@ -67,10 +66,7 @@ const SensorData = () => {
           onSensorClick={handleSensorClick}
         />
 
-        {/* Legends */}
-        <SensorLegends unitGroups={unitGroups} />
-
-        {/* Chart */}
+        {/* Chart with integrated legends */}
         <SensorChart
           sensorData={sensorData}
           selectedSensors={selectedSensors}

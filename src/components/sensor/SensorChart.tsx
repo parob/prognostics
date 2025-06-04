@@ -48,6 +48,52 @@ const SensorChart: React.FC<SensorChartProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Legends positioned side by side */}
+        <div className="flex flex-wrap gap-6 mb-6">
+          {/* Y-Axis Units Legend */}
+          {Object.keys(unitGroups).length > 0 && (
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-medium text-slate-700 mb-3">Y-Axis Units</h4>
+              <div className="flex flex-wrap items-center gap-4">
+                {Object.entries(unitGroups).map(([unit, group]) => (
+                  <div key={unit} className="flex items-center space-x-2">
+                    <div className="text-xs font-medium text-slate-600">
+                      {unit} ({group.position === 'left' ? 'L' : 'R'})
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {group.sensors.map((sensor) => (
+                        <div key={sensor.id} className="flex items-center space-x-1">
+                          <div 
+                            className="w-2 h-2 rounded"
+                            style={{ backgroundColor: sensor.color }}
+                          />
+                          <span className="text-xs text-slate-500">{sensor.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Operating Modes Legend */}
+          <div className="flex-1 min-w-0">
+            <h4 className="text-sm font-medium text-slate-700 mb-3">Operating Modes</h4>
+            <div className="flex items-center space-x-4">
+              {operatingModes.map((mode, index) => (
+                <div key={index} className="flex items-center space-x-1">
+                  <div 
+                    className="w-3 h-3 rounded"
+                    style={{ backgroundColor: mode.color }}
+                  />
+                  <span className="text-xs text-slate-600">{mode.mode}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height={600}>
             <LineChart 
