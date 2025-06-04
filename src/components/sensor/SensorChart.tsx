@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Area, ComposedChart } from 'recharts';
-import { sensors, operatingModes, vessels, type Sensor } from '@/data/sensorDefinitions';
+import { sensors, vessels, type Sensor } from '@/data/sensorDefinitions';
 import { type SensorDataPoint } from '@/utils/sensorDataGeneration';
 
 interface UnitGroup {
@@ -38,17 +39,57 @@ const SensorChart: React.FC<SensorChartProps> = ({
     },
   };
 
+  // Dynamically determine operating modes from the time range
+  const generateOperatingModes = () => {
+    const startDate = new Date(dateRange.from);
+    const endDate = new Date(dateRange.to);
+    const totalHours = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+    
+    if (totalHours <= 6) {
+      return [
+        { mode: 'DP Operations', start: 0, end: 100, color: '#ef4444' }
+      ];
+    } else if (totalHours <= 24) {
+      return [
+        { mode: 'Transit', start: 0, end: 25, color: '#3b82f6' },
+        { mode: 'DP Operations', start: 25, end: 70, color: '#ef4444' },
+        { mode: 'Transit', start: 70, end: 100, color: '#3b82f6' }
+      ];
+    } else if (totalHours <= 168) {
+      return [
+        { mode: 'Transit', start: 0, end: 15, color: '#3b82f6' },
+        { mode: 'DP Operations', start: 15, end: 35, color: '#ef4444' },
+        { mode: 'Anchor', start: 35, end: 45, color: '#22c55e' },
+        { mode: 'DP Operations', start: 45, end: 70, color: '#ef4444' },
+        { mode: 'Anchor', start: 70, end: 80, color: '#22c55e' },
+        { mode: 'Transit', start: 80, end: 100, color: '#3b82f6' }
+      ];
+    } else {
+      return [
+        { mode: 'Transit', start: 0, end: 10, color: '#3b82f6' },
+        { mode: 'DP Operations', start: 10, end: 30, color: '#ef4444' },
+        { mode: 'Anchor', start: 30, end: 40, color: '#22c55e' },
+        { mode: 'DP Operations', start: 40, end: 60, color: '#ef4444' },
+        { mode: 'Anchor', start: 60, end: 70, color: '#22c55e' },
+        { mode: 'DP Operations', start: 70, end: 85, color: '#ef4444' },
+        { mode: 'Transit', start: 85, end: 100, color: '#3b82f6' }
+      ];
+    }
+  };
+
+  const currentOperatingModes = generateOperatingModes();
+
   // Enhance sensor data with operating mode information
   const enhancedSensorData = sensorData.map(dataPoint => {
     const enhancedPoint = { ...dataPoint };
     
     // Find which operating mode this time point belongs to
-    const currentMode = operatingModes.find(mode => 
+    const currentMode = currentOperatingModes.find(mode => 
       dataPoint.time_percent >= mode.start && dataPoint.time_percent < mode.end
     );
     
     // Add operating mode data for background areas
-    operatingModes.forEach(mode => {
+    currentOperatingModes.forEach(mode => {
       enhancedPoint[`mode_${mode.mode.replace(/\s+/g, '_')}`] = 
         currentMode?.mode === mode.mode ? 1000 : 0;
     });
@@ -100,7 +141,7 @@ const SensorChart: React.FC<SensorChartProps> = ({
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-slate-700 mb-3">Operating Modes</h4>
             <div className="flex items-center space-x-4">
-              {operatingModes.map((mode, index) => (
+              {currentOperatingModes.map((mode, index) => (
                 <div key={index} className="flex items-center space-x-1">
                   <div 
                     className="w-3 h-3 rounded"
@@ -120,7 +161,7 @@ const SensorChart: React.FC<SensorChartProps> = ({
               margin={chartMargin}
             >
               {/* Operating Mode Background Areas */}
-              {operatingModes.map((mode, index) => (
+              {currentOperatingModes.map((mode, index) => (
                 <Area
                   key={`mode-${index}`}
                   type="stepAfter"
@@ -155,7 +196,7 @@ const SensorChart: React.FC<SensorChartProps> = ({
                     yAxisId={group.yAxisId}
                     orientation={group.position}
                     domain={[minDomain, maxDomain]}
-                    tickFormatter={(value) => `${Math.round(value)} ${unit}`}
+                    tickFormatter={(value) => `${Math.round(value)}`}
                     dx={group.offset ? (group.position === 'left' ? -group.offset : group.offset) : 0}
                   />
                 );
@@ -191,7 +232,7 @@ const SensorChart: React.FC<SensorChartProps> = ({
                     const endDate = new Date(dateRange.to);
                     const timeDiff = endDate.getTime() - startDate.getTime();
                     const currentTime = new Date(startDate.getTime() + (timePercent / 100) * timeDiff);
-                    const currentMode = operatingModes.find(mode => 
+                    const currentMode = currentOperatingModes.find(mode => 
                       timePercent >= mode.start && timePercent < mode.end
                     )?.mode || 'Unknown';
                     

@@ -98,58 +98,57 @@ const SensorControls: React.FC<SensorControlsProps> = ({
           </div>
         </div>
         
-        {/* Sensor Selection Dropdown */}
-        <div className="w-64">
-          <Select onValueChange={(value) => onSensorToggle(value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Add sensor to chart" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(sensorsByCategory).map(([category, categorySensors]) => (
-                <div key={category}>
-                  <div className="px-2 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    {category}
-                  </div>
-                  {categorySensors.map(sensor => (
-                    <SelectItem key={sensor.id} value={sensor.id}>
-                      <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-3 h-3 rounded"
-                          style={{ backgroundColor: sensor.color }}
-                        />
-                        <span>{sensor.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </div>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+        <div className="flex items-center space-x-4">
+          {/* Vessel Selection */}
+          <div className="w-48">
+            <Select value={selectedVessel} onValueChange={onVesselChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a vessel" />
+              </SelectTrigger>
+              <SelectContent>
+                {vessels.map(vessel => (
+                  <SelectItem key={vessel.id} value={vessel.id}>
+                    {vessel.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      {/* Vessel Selection */}
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">Select Vessel</label>
-        <div className="w-64">
-          <Select value={selectedVessel} onValueChange={onVesselChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a vessel" />
-            </SelectTrigger>
-            <SelectContent>
-              {vessels.map(vessel => (
-                <SelectItem key={vessel.id} value={vessel.id}>
-                  {vessel.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Sensor Selection Dropdown */}
+          <div className="w-64">
+            <Select onValueChange={(value) => onSensorToggle(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Add sensor to chart" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(sensorsByCategory).map(([category, categorySensors]) => (
+                  <div key={category}>
+                    <div className="px-2 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      {category}
+                    </div>
+                    {categorySensors.map(sensor => (
+                      <SelectItem key={sensor.id} value={sensor.id}>
+                        <div className="flex items-center space-x-2">
+                          <div 
+                            className="w-3 h-3 rounded"
+                            style={{ backgroundColor: sensor.color }}
+                          />
+                          <span>{sensor.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       {/* Selected Sensors Display */}
       <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">Selected Sensors (Click to view details)</label>
+        <label className="text-sm font-medium text-slate-700 mb-2 block">Sensors</label>
         <div className="flex flex-wrap gap-2">
           {selectedSensors.map(sensorId => {
             const sensor = sensors.find(s => s.id === sensorId);
