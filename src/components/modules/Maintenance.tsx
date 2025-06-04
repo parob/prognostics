@@ -1,372 +1,171 @@
+
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
-interface MaintenanceProps {
-  selectedVessels: string[];
-}
-
-const Maintenance: React.FC<MaintenanceProps> = ({ selectedVessels }) => {
-  // Sample data for radar charts
+const Maintenance: React.FC = () => {
   const engineData = [
-    { subject: 'Vibration', A: 120, B: 110, fullMark: 150 },
-    { subject: 'Temperature', A: 98, B: 130, fullMark: 150 },
-    { subject: 'Oil Pressure', A: 86, B: 130, fullMark: 150 },
-    { subject: 'RPM', A: 99, B: 100, fullMark: 150 },
-    { subject: 'Load', A: 85, B: 90, fullMark: 150 },
-    { subject: 'Fuel Rate', A: 65, B: 85, fullMark: 150 },
+    { name: 'DG 1', date: '2022-03-31', hours: 40324, load: 62934, sfoc: 48375.27, overhaul: '2036-04-21' },
+    { name: 'DG 2', date: '2017-12-18', hours: 22338, load: 43238, sfoc: 45687.3, overhaul: '2033-06-23' },
+    { name: 'DG 3', date: '2017-12-18', hours: 21909, load: 43909, sfoc: 46359.37, overhaul: '2035-06-18' },
+    { name: 'DG 4', date: '2016-12-03', hours: 19928, load: 39028, sfoc: 48759.36, overhaul: '2032-12-12' }
   ];
 
-  const propulsionData = [
-    { subject: 'Thrust', A: 120, B: 110, fullMark: 150 },
-    { subject: 'Torque', A: 98, B: 130, fullMark: 150 },
-    { subject: 'Efficiency', A: 86, B: 130, fullMark: 150 },
-    { subject: 'Vibration', A: 99, B: 100, fullMark: 150 },
-    { subject: 'Temperature', A: 85, B: 90, fullMark: 150 },
-    { subject: 'Alignment', A: 65, B: 85, fullMark: 150 },
+  const loadChart1 = [
+    { time: '00:00', load: 40 },
+    { time: '04:00', load: 35 },
+    { time: '08:00', load: 38 },
+    { time: '12:00', load: 42 },
+    { time: '16:00', load: 45 },
+    { time: '20:00', load: 40 },
+    { time: '24:00', load: 38 }
   ];
 
-  const generatorData = [
-    { subject: 'Output', A: 120, B: 110, fullMark: 150 },
-    { subject: 'Frequency', A: 98, B: 130, fullMark: 150 },
-    { subject: 'Voltage', A: 86, B: 130, fullMark: 150 },
-    { subject: 'Temperature', A: 99, B: 100, fullMark: 150 },
-    { subject: 'Vibration', A: 85, B: 90, fullMark: 150 },
-    { subject: 'Efficiency', A: 65, B: 85, fullMark: 150 },
+  const loadChart2 = [
+    { time: '00:00', load: 35 },
+    { time: '04:00', load: 30 },
+    { time: '08:00', load: 33 },
+    { time: '12:00', load: 37 },
+    { time: '16:00', load: 40 },
+    { time: '20:00', load: 35 },
+    { time: '24:00', load: 33 }
   ];
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-2 border rounded shadow-md">
-          <p className="text-sm font-medium">{`${payload[0].name} : ${payload[0].value}`}</p>
-          {payload.length > 1 && (
-            <p className="text-sm font-medium">{`${payload[1].name} : ${payload[1].value}`}</p>
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
+  const barData = [
+    { name: 'DG 1', load: 35, runningHours: 28 },
+    { name: 'DG 2', load: 38, runningHours: 15 },
+    { name: 'DG 3', load: 40, runningHours: 5 },
+    { name: 'DG 4', load: 30, runningHours: 35 }
+  ];
+
+  const thresholdData = [
+    { name: 'DG 1', below: 60, above: 35 },
+    { name: 'DG 2', below: 65, above: 30 },
+    { name: 'DG 3', below: 20, above: 75 },
+    { name: 'DG 4', below: 70, above: 25 }
+  ];
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Condition Based Maintenance</h1>
-          <p className="text-gray-600">Monitor equipment health and predict maintenance needs</p>
+          <h2 className="text-2xl font-semibold text-slate-900">Condition Based Maintenance</h2>
+          <p className="text-slate-600 mt-1">Engines overview for selected performance parameter, operation mode, and date</p>
         </div>
-        <Select defaultValue="all">
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="View" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Systems</SelectItem>
-            <SelectItem value="critical">Critical Only</SelectItem>
-            <SelectItem value="warnings">Warnings</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center space-x-4">
+          <select className="border border-slate-300 rounded px-3 py-2 text-sm">
+            <option>All modes</option>
+            <option>DP</option>
+            <option>Transit</option>
+          </select>
+          <select className="border border-slate-300 rounded px-3 py-2 text-sm">
+            <option>SFOC</option>
+            <option>Load</option>
+            <option>Temperature</option>
+          </select>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-slate-600">Load threshold (%)</span>
+            <input type="number" defaultValue="40" className="border border-slate-300 rounded px-3 py-2 w-16 text-sm" />
+          </div>
+        </div>
       </div>
 
-      {selectedVessels.length === 0 && (
-        <Card>
-          <CardContent className="flex items-center justify-center h-64">
-            <p className="text-gray-500">Please select at least one vessel to view maintenance data</p>
-          </CardContent>
-        </Card>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+          <h3 className="font-semibold text-slate-900 mb-4">Avg. Load / Running hours</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={barData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="load" fill="#3b82f6" name="Load" />
+              <Bar dataKey="runningHours" fill="#ef4444" name="Running Hours" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
-      {selectedVessels.length > 0 && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium">Engine Health</CardTitle>
-                <CardDescription>Overall condition: Good</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl font-bold text-green-600">92%</span>
-                  <span className="text-sm text-gray-500">Next service: 240h</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div className="bg-green-600 h-2.5 rounded-full" style={{ width: '92%' }}></div>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+          <h3 className="font-semibold text-slate-900 mb-4">Time below/above load threshold</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={thresholdData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="below" fill="#3b82f6" name="Load below 40%" />
+              <Bar dataKey="above" fill="#ef4444" name="Load above 40%" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium">Propulsion System</CardTitle>
-                <CardDescription>Overall condition: Warning</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl font-bold text-amber-500">78%</span>
-                  <span className="text-sm text-gray-500">Next service: 120h</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: '78%' }}></div>
-                </div>
-              </CardContent>
-            </Card>
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200">
+          <h3 className="font-semibold text-slate-900">Engine Statistics</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Engine</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Service</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Running Hours</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Avg Load</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">SFOC</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Next Overhaul</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-slate-200">
+              {engineData.map((engine, index) => (
+                <tr key={index} className="hover:bg-slate-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{engine.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{engine.date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{engine.hours.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{engine.load.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{engine.sfoc.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{engine.overhaul}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium">Generator</CardTitle>
-                <CardDescription>Overall condition: Attention</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl font-bold text-red-500">65%</span>
-                  <span className="text-sm text-gray-500">Next service: 48h</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div className="bg-red-500 h-2.5 rounded-full" style={{ width: '65%' }}></div>
-                </div>
-              </CardContent>
-            </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+          <h3 className="font-semibold text-slate-900 mb-4">Load distribution</h3>
+          <div className="mb-4 text-sm text-slate-600">
+            <div>Avg load: <span className="font-medium">42% (1260 kW)</span></div>
+            <div>Max load: <span className="font-medium">100% (3000 kW)</span></div>
           </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={loadChart1}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="load" stroke="#3b82f6" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
-          <Tabs defaultValue="engine">
-            <div className="flex justify-between items-center mb-4">
-              <TabsList>
-                <TabsTrigger value="engine">Engine</TabsTrigger>
-                <TabsTrigger value="propulsion">Propulsion</TabsTrigger>
-                <TabsTrigger value="generator">Generator</TabsTrigger>
-              </TabsList>
-              <Select defaultValue="current">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Data Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="current">Current</SelectItem>
-                  <SelectItem value="24h">Last 24 Hours</SelectItem>
-                  <SelectItem value="7d">Last 7 Days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <TabsContent value="engine">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Engine Performance Metrics</CardTitle>
-                  <CardDescription>
-                    Current readings compared to baseline values
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={engineData}>
-                        <PolarGrid />
-                        <PolarAngleAxis dataKey="subject" />
-                        <PolarRadiusAxis angle={30} domain={[0, 150]} />
-                        <Radar
-                          name="Current"
-                          dataKey="A"
-                          stroke="#2563eb"
-                          fill="#3b82f6"
-                          fillOpacity={0.6}
-                        />
-                        <Radar
-                          name="Baseline"
-                          dataKey="B"
-                          stroke="#059669"
-                          fill="#10b981"
-                          fillOpacity={0.6}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="propulsion">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Propulsion System Metrics</CardTitle>
-                  <CardDescription>
-                    Current readings compared to baseline values
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={propulsionData}>
-                        <PolarGrid />
-                        <PolarAngleAxis dataKey="subject" />
-                        <PolarRadiusAxis angle={30} domain={[0, 150]} />
-                        <Radar
-                          name="Current"
-                          dataKey="A"
-                          stroke="#2563eb"
-                          fill="#3b82f6"
-                          fillOpacity={0.6}
-                        />
-                        <Radar
-                          name="Baseline"
-                          dataKey="B"
-                          stroke="#059669"
-                          fill="#10b981"
-                          fillOpacity={0.6}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="generator">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Generator Metrics</CardTitle>
-                  <CardDescription>
-                    Current readings compared to baseline values
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={generatorData}>
-                        <PolarGrid />
-                        <PolarAngleAxis dataKey="subject" />
-                        <PolarRadiusAxis angle={30} domain={[0, 150]} />
-                        <Radar
-                          name="Current"
-                          dataKey="A"
-                          stroke="#2563eb"
-                          fill="#3b82f6"
-                          fillOpacity={0.6}
-                        />
-                        <Radar
-                          name="Baseline"
-                          dataKey="B"
-                          stroke="#059669"
-                          fill="#10b981"
-                          fillOpacity={0.6}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Maintenance Alerts</CardTitle>
-                <CardDescription>Recent issues requiring attention</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                    <div className="w-2 h-2 mt-1.5 rounded-full bg-red-500"></div>
-                    <div>
-                      <h4 className="font-medium text-red-800">Generator Bearing Vibration</h4>
-                      <p className="text-sm text-red-600">Abnormal vibration detected in port generator bearing</p>
-                      <div className="flex items-center mt-1 text-xs text-red-500">
-                        <span>2 hours ago</span>
-                        <span className="mx-2">•</span>
-                        <span>High Priority</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                    <div className="w-2 h-2 mt-1.5 rounded-full bg-amber-500"></div>
-                    <div>
-                      <h4 className="font-medium text-amber-800">Propulsion Oil Temperature</h4>
-                      <p className="text-sm text-amber-600">Oil temperature trending higher than normal</p>
-                      <div className="flex items-center mt-1 text-xs text-amber-500">
-                        <span>8 hours ago</span>
-                        <span className="mx-2">•</span>
-                        <span>Medium Priority</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                    <div className="w-2 h-2 mt-1.5 rounded-full bg-blue-500"></div>
-                    <div>
-                      <h4 className="font-medium text-blue-800">Engine Air Filter</h4>
-                      <p className="text-sm text-blue-600">Air filter replacement due in 50 operating hours</p>
-                      <div className="flex items-center mt-1 text-xs text-blue-500">
-                        <span>1 day ago</span>
-                        <span className="mx-2">•</span>
-                        <span>Low Priority</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Maintenance Schedule</CardTitle>
-                <CardDescription>Upcoming maintenance tasks</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 border-b">
-                    <div>
-                      <h4 className="font-medium">Generator Service</h4>
-                      <p className="text-sm text-gray-500">Complete overhaul of port generator</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="block font-medium text-red-600">Aug 15</span>
-                      <span className="text-xs text-gray-500">48 hours</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 border-b">
-                    <div>
-                      <h4 className="font-medium">Propulsion System Check</h4>
-                      <p className="text-sm text-gray-500">Inspection and oil change</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="block font-medium text-amber-600">Aug 22</span>
-                      <span className="text-xs text-gray-500">120 hours</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 border-b">
-                    <div>
-                      <h4 className="font-medium">Engine Maintenance</h4>
-                      <p className="text-sm text-gray-500">Regular service and filter replacement</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="block font-medium text-green-600">Sep 5</span>
-                      <span className="text-xs text-gray-500">240 hours</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3">
-                    <div>
-                      <h4 className="font-medium">Hull Inspection</h4>
-                      <p className="text-sm text-gray-500">Underwater inspection and cleaning</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="block font-medium text-green-600">Sep 15</span>
-                      <span className="text-xs text-gray-500">360 hours</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+          <h3 className="font-semibold text-slate-900 mb-4">SFOC deviation</h3>
+          <div className="mb-4 text-sm text-slate-600">
+            <div>Avg SFOC: <span className="font-medium">221 g/kWh</span></div>
+            <div>Max SFOC: <span className="font-medium">369 g/kWh</span></div>
           </div>
-        </>
-      )}
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={loadChart2}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="load" stroke="#ef4444" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 };
