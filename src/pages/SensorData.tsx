@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -398,10 +399,10 @@ const SensorData = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[600px] w-full">
+            <div className="h-[600px] w-full">
               <LineChart 
                 data={sensorData} 
-                margin={{ top: 20, right: 80, left: 80, bottom: 5 }}
+                margin={{ top: 20, right: 80, left: 80, bottom: 60 }}
                 width={800}
                 height={600}
               >
@@ -429,7 +430,10 @@ const SensorData = () => {
                   type="number"
                   scale="time"
                   domain={['dataMin', 'dataMax']}
-                  tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                  tickFormatter={(value) => {
+                    const date = new Date(value);
+                    return `${date.getMonth() + 1}/${date.getDate()}`;
+                  }}
                 />
                 
                 {/* Generate Y-axes for each unit group */}
@@ -513,7 +517,7 @@ const SensorData = () => {
                   }}
                 />
               </LineChart>
-            </ChartContainer>
+            </div>
           </CardContent>
         </Card>
       </div>
