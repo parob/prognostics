@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -399,7 +398,7 @@ const SensorData = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[600px] w-full">
+            <ChartContainer config={chartConfig} className="h-[600px] w-full">
               <LineChart 
                 data={sensorData} 
                 margin={{ top: 20, right: 80, left: 80, bottom: 60 }}
@@ -517,7 +516,7 @@ const SensorData = () => {
                   }}
                 />
               </LineChart>
-            </div>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
