@@ -41,7 +41,14 @@ const SensorChart: React.FC<SensorChartProps> = ({
     },
   };
 
-  // Dynamically determine operating modes from the time range
+  // Fixed operating modes that will always be displayed in the legend
+  const allOperatingModes = [
+    { mode: 'Transit', color: '#3b82f6' },
+    { mode: 'DP Operations', color: '#ef4444' },
+    { mode: 'Anchor', color: '#22c55e' }
+  ];
+
+  // Dynamically determine operating modes from the time range for data generation
   const generateOperatingModes = () => {
     const startDate = new Date(dateRange.from);
     const endDate = new Date(dateRange.to);
@@ -142,11 +149,11 @@ const SensorChart: React.FC<SensorChartProps> = ({
             </div>
           )}
 
-          {/* Operating Modes Legend */}
+          {/* Operating Modes Legend - Fixed to show all modes */}
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-slate-700 mb-3">Operating Modes</h4>
             <div className="flex items-center space-x-4">
-              {currentOperatingModes.map((mode, index) => (
+              {allOperatingModes.map((mode, index) => (
                 <div key={index} className="flex items-center space-x-1">
                   <div 
                     className="w-3 h-3 rounded"
