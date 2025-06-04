@@ -1,5 +1,6 @@
 
-import { Home } from "lucide-react";
+
+import { Home, Database } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 import {
@@ -12,12 +13,17 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-// Navigation items - removed Sensor Data as it should only be accessible from fleet page
+// Navigation items
 const items = [
   {
     title: "Fleet Overview",
     url: "/",
     icon: Home,
+  },
+  {
+    title: "Sensor Data",
+    url: "/sensor-data",
+    icon: Database,
   },
 ];
 
@@ -51,3 +57,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+

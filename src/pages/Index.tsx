@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
-import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle, Gauge, Activity, Shield, ChevronDown, Database } from 'lucide-react';
+import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle, Gauge, Activity, Shield, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import RadialGauge from '@/components/ui/radial-gauge';
 import VesselDetailModal from '@/components/VesselDetailModal';
@@ -415,18 +415,9 @@ const Index = () => {
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Armada Fleet</h1>
-              <p className="text-slate-600">Monitor your fleet performance, optimize fuel efficiency, and reduce emissions</p>
-            </div>
-            <Button 
-              onClick={() => navigate('/sensor-data')}
-              className="flex items-center space-x-2"
-            >
-              <Database className="h-4 w-4" />
-              <span>Sensor Data</span>
-            </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Armada Fleet</h1>
+            <p className="text-slate-600">Monitor your fleet performance, optimize fuel efficiency, and reduce emissions</p>
           </div>
         </div>
 
