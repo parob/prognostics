@@ -33,6 +33,33 @@ const SensorControls: React.FC<SensorControlsProps> = ({
     return acc;
   }, {} as Record<string, Sensor[]>);
 
+  const handlePredefinedRangeChange = (value: string) => {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (value) {
+      case 'last-6-hours':
+        startDate = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+        break;
+      case 'last-1-day':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case 'last-7-days':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'last-30-days':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return;
+    }
+
+    onDateRangeChange({
+      from: startDate.toISOString().split('T')[0],
+      to: now.toISOString().split('T')[0]
+    });
+  };
+
   return (
     <div className="mb-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -53,6 +80,21 @@ const SensorControls: React.FC<SensorControlsProps> = ({
               onChange={(e) => onDateRangeChange({ ...dateRange, to: e.target.value })}
               className="border border-slate-300 rounded px-3 py-2 text-sm"
             />
+          </div>
+          
+          {/* Predefined Date Range Dropdown */}
+          <div className="w-48">
+            <Select onValueChange={handlePredefinedRangeChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Quick date ranges" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="last-6-hours">Last 6 hours</SelectItem>
+                <SelectItem value="last-1-day">Last 1 day</SelectItem>
+                <SelectItem value="last-7-days">Last 7 days</SelectItem>
+                <SelectItem value="last-30-days">Last 30 days</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         
