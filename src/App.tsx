@@ -11,6 +11,13 @@ import SensorData from "./pages/SensorData";
 import SensorDetails from "./pages/SensorDetails";
 import SensorCreate from "./pages/SensorCreate";
 import SensorList from "./pages/SensorList";
+import FunctionCreate from "./pages/FunctionCreate";
+import FunctionList from "./pages/FunctionList";
+import FunctionSandbox from "./pages/FunctionSandbox";
+import WorkflowCreate from "./pages/WorkflowCreate";
+import WorkflowList from "./pages/WorkflowList";
+import WorkflowAutomations from "./pages/WorkflowAutomations";
+import WorkflowActivity from "./pages/WorkflowActivity";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +41,13 @@ const App = () => (
                 <Route path="/sensor-details/:sensorId" element={<SensorDetails />} />
                 <Route path="/sensors/create" element={<SensorCreate />} />
                 <Route path="/sensors/list" element={<SensorList />} />
+                <Route path="/functions/create" element={<FunctionCreate />} />
+                <Route path="/functions/list" element={<FunctionList />} />
+                <Route path="/functions/sandbox" element={<FunctionSandbox />} />
+                <Route path="/workflows/create" element={<WorkflowCreate />} />
+                <Route path="/workflows/list" element={<WorkflowList />} />
+                <Route path="/workflows/automations" element={<WorkflowAutomations />} />
+                <Route path="/workflows/activity" element={<WorkflowActivity />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
