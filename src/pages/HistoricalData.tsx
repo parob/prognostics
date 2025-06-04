@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Rectangle } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -156,28 +156,40 @@ const HistoricalData = () => {
   };
 
   // Custom background component for vessel modes
-  const ModeBackground = ({ payload, backgrounds }: any) => {
-    if (!backgrounds || backgrounds.length === 0) return null;
-
+  const CustomizedBackground = (props: any) => {
+    const { payload, ...rest } = props;
+    
+    // Get mode backgrounds
+    const normalizedData = normalizeData(chartData, selectedSensors[0] || 'fuel_consumption');
+    const modeBackgrounds = generateModeBackgrounds(normalizedData);
+    
     return (
-      <>
-        {backgrounds.map((bg: any, index: number) => {
-          const startX = (bg.start / (chartData.length - 1)) * 100;
-          const width = ((bg.end - bg.start + 1) / (chartData.length - 1)) * 100;
+      <g>
+        {modeBackgrounds.map((bg: any, index: number) => {
+          // Calculate positions based on data indices
+          const chartWidth = props.width || 0;
+          const chartHeight = props.height || 0;
+          const dataLength = normalizedData.length;
+          
+          if (dataLength <= 1) return null;
+          
+          const startX = (bg.start / (dataLength - 1)) * chartWidth;
+          const endX = (bg.end / (dataLength - 1)) * chartWidth;
+          const width = endX - startX;
           
           return (
-            <Rectangle
+            <rect
               key={`mode-bg-${index}`}
-              x={`${startX}%`}
-              y="0%"
-              width={`${width}%`}
-              height="100%"
+              x={startX}
+              y={0}
+              width={width}
+              height={chartHeight}
               fill={bg.color}
-              fillOpacity={0.1}
+              fillOpacity={0.15}
             />
           );
         })}
-      </>
+      </g>
     );
   };
 
@@ -307,7 +319,6 @@ const HistoricalData = () => {
             {selectedSensors.map((sensor) => {
               const sensorInfo = sensors.find(s => s.id === sensor);
               const normalizedData = normalizeData(chartData, sensor);
-              const modeBackgrounds = generateModeBackgrounds(normalizedData);
               
               return (
                 <Card key={sensor}>
@@ -322,34 +333,10 @@ const HistoricalData = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={normalizedData}>
                           <defs>
-                            {modeBackgrounds.map((bg, index) => (
-                              <pattern key={`pattern-${index}`} id={`mode-pattern-${index}`} patternUnits="userSpaceOnUse" width="100%" height="100%">
-                                <rect width="100%" height="100%" fill={bg.color} fillOpacity={0.1} />
-                              </pattern>
-                            ))}
+                            <pattern id="modeBackground" patternUnits="userSpaceOnUse" width="100%" height="100%">
+                              <CustomizedBackground />
+                            </pattern>
                           </defs>
-                          
-                          {/* Mode background rectangles */}
-                          {modeBackgrounds.map((bg, index) => {
-                            const startIndex = bg.start;
-                            const endIndex = bg.end;
-                            const startDate = normalizedData[startIndex]?.date;
-                            const endDate = normalizedData[endIndex]?.date;
-                            
-                            if (!startDate || !endDate) return null;
-                            
-                            return (
-                              <Rectangle
-                                key={`mode-rect-${index}`}
-                                x={startIndex * (100 / (normalizedData.length - 1)) + '%'}
-                                y="0%"
-                                width={(endIndex - startIndex + 1) * (100 / normalizedData.length) + '%'}
-                                height="100%"
-                                fill={bg.color}
-                                fillOpacity={0.15}
-                              />
-                            );
-                          })}
                           
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                           <XAxis 
