@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceArea } from 'recharts';
 import { ArrowLeft, Calendar, Database } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const SensorData = () => {
   const navigate = useNavigate();
-  const [selectedVessel, setSelectedVessel] = useState('armada-7801');
-  const [selectedSensors, setSelectedSensors] = useState<string[]>(['engine_temp', 'fuel_flow']);
+  const [selectedVessels, setSelectedVessels] = useState<string[]>(['armada-7801']);
+  const [selectedSensors, setSelectedSensors] = useState<string[]>(['engine_main_temp', 'fuel_flow_rate']);
   const [dateRange, setDateRange] = useState({ from: '2024-01-01', to: '2024-01-07' });
 
   // Available vessels
@@ -20,24 +20,70 @@ const SensorData = () => {
     { id: 'armada-7801', name: 'ARMADA 7801' },
     { id: 'armada-7802', name: 'ARMADA 7802' },
     { id: 'armada-7803', name: 'ARMADA 7803' },
+    { id: 'armada-7804', name: 'ARMADA 7804' },
+    { id: 'armada-7805', name: 'ARMADA 7805' },
   ];
 
-  // Available sensors
+  // Comprehensive sensor list with more specific options
   const sensors = [
-    { id: 'engine_temp', name: 'Engine Temperature', unit: '°C', color: '#ff6b6b' },
-    { id: 'fuel_flow', name: 'Fuel Flow Rate', unit: 'L/h', color: '#4ecdc4' },
-    { id: 'speed', name: 'Vessel Speed', unit: 'knots', color: '#45b7d1' },
-    { id: 'wind_speed', name: 'Wind Speed', unit: 'm/s', color: '#96ceb4' },
-    { id: 'wave_height', name: 'Wave Height', unit: 'm', color: '#feca57' },
-    { id: 'battery_voltage', name: 'Battery Voltage', unit: 'V', color: '#ff9ff3' },
+    // Engine sensors
+    { id: 'engine_main_temp', name: 'Main Engine Temperature', unit: '°C', color: '#ff6b6b', category: 'Engine' },
+    { id: 'engine_aux_temp', name: 'Auxiliary Engine Temperature', unit: '°C', color: '#ff8e8e', category: 'Engine' },
+    { id: 'engine_coolant_temp', name: 'Engine Coolant Temperature', unit: '°C', color: '#ffb3b3', category: 'Engine' },
+    { id: 'engine_oil_pressure', name: 'Engine Oil Pressure', unit: 'bar', color: '#ff4757', category: 'Engine' },
+    { id: 'engine_oil_temp', name: 'Engine Oil Temperature', unit: '°C', color: '#c44569', category: 'Engine' },
+    { id: 'engine_rpm', name: 'Engine RPM', unit: 'rpm', color: '#f8b500', category: 'Engine' },
+    { id: 'turbo_pressure', name: 'Turbocharger Pressure', unit: 'bar', color: '#ffa726', category: 'Engine' },
+    
+    // Fuel system
+    { id: 'fuel_flow_rate', name: 'Fuel Flow Rate', unit: 'L/h', color: '#4ecdc4', category: 'Fuel' },
+    { id: 'fuel_tank_level_1', name: 'Fuel Tank 1 Level', unit: '%', color: '#26d0ce', category: 'Fuel' },
+    { id: 'fuel_tank_level_2', name: 'Fuel Tank 2 Level', unit: '%', color: '#1dd1a1', category: 'Fuel' },
+    { id: 'fuel_pressure', name: 'Fuel Pressure', unit: 'bar', color: '#00d2d3', category: 'Fuel' },
+    { id: 'fuel_temperature', name: 'Fuel Temperature', unit: '°C', color: '#55a3ff', category: 'Fuel' },
+    
+    // Navigation & positioning
+    { id: 'vessel_speed', name: 'Vessel Speed Over Ground', unit: 'knots', color: '#45b7d1', category: 'Navigation' },
+    { id: 'vessel_heading', name: 'Vessel Heading', unit: '°', color: '#96ceb4', category: 'Navigation' },
+    { id: 'gps_lat', name: 'GPS Latitude', unit: '°', color: '#74b9ff', category: 'Navigation' },
+    { id: 'gps_lon', name: 'GPS Longitude', unit: '°', color: '#0984e3', category: 'Navigation' },
+    { id: 'water_depth', name: 'Water Depth', unit: 'm', color: '#6c5ce7', category: 'Navigation' },
+    
+    // Environmental
+    { id: 'wind_speed', name: 'Wind Speed', unit: 'm/s', color: '#a29bfe', category: 'Environmental' },
+    { id: 'wind_direction', name: 'Wind Direction', unit: '°', color: '#fd79a8', category: 'Environmental' },
+    { id: 'wave_height', name: 'Significant Wave Height', unit: 'm', color: '#feca57', category: 'Environmental' },
+    { id: 'wave_period', name: 'Wave Period', unit: 's', color: '#ff9ff3', category: 'Environmental' },
+    { id: 'air_temp', name: 'Air Temperature', unit: '°C', color: '#48dbfb', category: 'Environmental' },
+    { id: 'water_temp', name: 'Water Temperature', unit: '°C', color: '#0abde3', category: 'Environmental' },
+    { id: 'barometric_pressure', name: 'Barometric Pressure', unit: 'mbar', color: '#006ba6', category: 'Environmental' },
+    
+    // Electrical
+    { id: 'battery_voltage_main', name: 'Main Battery Voltage', unit: 'V', color: '#ff9f43', category: 'Electrical' },
+    { id: 'battery_voltage_aux', name: 'Auxiliary Battery Voltage', unit: 'V', color: '#ffa502', category: 'Electrical' },
+    { id: 'generator_voltage', name: 'Generator Voltage', unit: 'V', color: '#ff6348', category: 'Electrical' },
+    { id: 'shore_power_voltage', name: 'Shore Power Voltage', unit: 'V', color: '#ff4757', category: 'Electrical' },
+    { id: 'power_consumption', name: 'Total Power Consumption', unit: 'kW', color: '#ff3838', category: 'Electrical' },
+    
+    // Hydraulics
+    { id: 'hydraulic_pressure_main', name: 'Main Hydraulic Pressure', unit: 'bar', color: '#7bed9f', category: 'Hydraulics' },
+    { id: 'hydraulic_pressure_aux', name: 'Auxiliary Hydraulic Pressure', unit: 'bar', color: '#70a1ff', category: 'Hydraulics' },
+    { id: 'hydraulic_oil_temp', name: 'Hydraulic Oil Temperature', unit: '°C', color: '#5f27cd', category: 'Hydraulics' },
+    
+    // Dynamic Positioning
+    { id: 'dp_power_consumption', name: 'DP Power Consumption', unit: 'kW', color: '#00d8d6', category: 'DP System' },
+    { id: 'thruster_1_power', name: 'Thruster 1 Power', unit: '%', color: '#0fb9b1', category: 'DP System' },
+    { id: 'thruster_2_power', name: 'Thruster 2 Power', unit: '%', color: '#006ba6', category: 'DP System' },
+    { id: 'thruster_3_power', name: 'Thruster 3 Power', unit: '%', color: '#045de9', category: 'DP System' },
+    { id: 'thruster_4_power', name: 'Thruster 4 Power', unit: '%', color: '#3742fa', category: 'DP System' },
   ];
 
   // Operating modes with time periods and colors
   const operatingModes = [
-    { mode: 'Transit', start: 0, end: 20, color: '#3b82f6', opacity: 0.2 },
-    { mode: 'DP Operations', start: 20, end: 60, color: '#ef4444', opacity: 0.2 },
-    { mode: 'Anchor', start: 60, end: 80, color: '#22c55e', opacity: 0.2 },
-    { mode: 'Transit', start: 80, end: 100, color: '#3b82f6', opacity: 0.2 },
+    { mode: 'Transit', start: 0, end: 20, color: '#3b82f6' },
+    { mode: 'DP Operations', start: 20, end: 60, color: '#ef4444' },
+    { mode: 'Anchor', start: 60, end: 80, color: '#22c55e' },
+    { mode: 'Transit', start: 80, end: 100, color: '#3b82f6' },
   ];
 
   // Generate sample sensor data with normalized values (0-100)
@@ -57,16 +103,27 @@ const SensorData = () => {
         let baseValue = 50;
         const noise = (Math.random() - 0.5) * 10;
         
-        // Adjust base values based on operating mode
+        // Adjust base values based on operating mode and sensor type
         switch (currentMode) {
           case 'DP Operations':
-            baseValue = sensor.id === 'engine_temp' ? 80 : sensor.id === 'fuel_flow' ? 90 : 60;
+            if (sensor.category === 'Engine') baseValue = 80;
+            else if (sensor.category === 'Fuel') baseValue = 90;
+            else if (sensor.category === 'DP System') baseValue = 85;
+            else if (sensor.id === 'vessel_speed') baseValue = 5;
+            else baseValue = 60;
             break;
           case 'Transit':
-            baseValue = sensor.id === 'speed' ? 75 : sensor.id === 'fuel_flow' ? 70 : 55;
+            if (sensor.id === 'vessel_speed') baseValue = 75;
+            else if (sensor.category === 'Fuel') baseValue = 70;
+            else if (sensor.category === 'Engine') baseValue = 65;
+            else if (sensor.category === 'DP System') baseValue = 10;
+            else baseValue = 55;
             break;
           case 'Anchor':
-            baseValue = sensor.id === 'speed' ? 5 : sensor.id === 'engine_temp' ? 40 : 30;
+            if (sensor.id === 'vessel_speed') baseValue = 5;
+            else if (sensor.category === 'Engine') baseValue = 40;
+            else if (sensor.category === 'DP System') baseValue = 5;
+            else baseValue = 30;
             break;
         }
         
@@ -79,6 +136,14 @@ const SensorData = () => {
   };
 
   const sensorData = generateSensorData();
+
+  const handleVesselToggle = (vesselId: string) => {
+    setSelectedVessels(prev => 
+      prev.includes(vesselId) 
+        ? prev.filter(id => id !== vesselId)
+        : [...prev, vesselId]
+    );
+  };
 
   const handleSensorToggle = (sensorId: string) => {
     setSelectedSensors(prev => 
@@ -95,29 +160,14 @@ const SensorData = () => {
     },
   };
 
-  // Custom background component for operating modes
-  const ModeBackground = ({ data }: { data: any[] }) => {
-    return (
-      <g>
-        {operatingModes.map((mode, index) => {
-          const startX = (mode.start / 100) * 100; // Convert to chart percentage
-          const width = ((mode.end - mode.start) / 100) * 100;
-          
-          return (
-            <rect
-              key={index}
-              x={`${startX}%`}
-              y="0"
-              width={`${width}%`}
-              height="100%"
-              fill={mode.color}
-              fillOpacity={mode.opacity}
-            />
-          );
-        })}
-      </g>
-    );
-  };
+  // Group sensors by category for better organization
+  const sensorsByCategory = sensors.reduce((acc, sensor) => {
+    if (!acc[sensor.category]) {
+      acc[sensor.category] = [];
+    }
+    acc[sensor.category].push(sensor);
+    return acc;
+  }, {} as Record<string, typeof sensors>);
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
@@ -145,22 +195,6 @@ const SensorData = () => {
         <div className="mb-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Select Vessel</label>
-                <Select value={selectedVessel} onValueChange={setSelectedVessel}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vessels.map(vessel => (
-                      <SelectItem key={vessel.id} value={vessel.id}>
-                        {vessel.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4 text-slate-400" />
                 <span className="text-sm text-slate-600">From</span>
@@ -181,27 +215,56 @@ const SensorData = () => {
             </div>
           </div>
 
-          {/* Sensor Selection */}
+          {/* Vessel Selection */}
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-2 block">Select Sensors to Compare</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {sensors.map(sensor => (
-                <div key={sensor.id} className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-slate-700 mb-2 block">Select Vessels for Comparison</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {vessels.map(vessel => (
+                <div key={vessel.id} className="flex items-center space-x-2">
                   <Checkbox
-                    id={sensor.id}
-                    checked={selectedSensors.includes(sensor.id)}
-                    onCheckedChange={() => handleSensorToggle(sensor.id)}
+                    id={vessel.id}
+                    checked={selectedVessels.includes(vessel.id)}
+                    onCheckedChange={() => handleVesselToggle(vessel.id)}
                   />
                   <label
-                    htmlFor={sensor.id}
-                    className="text-sm text-slate-700 cursor-pointer flex items-center space-x-2"
+                    htmlFor={vessel.id}
+                    className="text-sm text-slate-700 cursor-pointer"
                   >
-                    <div 
-                      className="w-3 h-3 rounded"
-                      style={{ backgroundColor: sensor.color }}
-                    />
-                    <span>{sensor.name}</span>
+                    {vessel.name}
                   </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sensor Selection by Category */}
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-2 block">Select Sensors to Compare</label>
+            <div className="space-y-4">
+              {Object.entries(sensorsByCategory).map(([category, categorySensors]) => (
+                <div key={category}>
+                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{category}</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {categorySensors.map(sensor => (
+                      <div key={sensor.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={sensor.id}
+                          checked={selectedSensors.includes(sensor.id)}
+                          onCheckedChange={() => handleSensorToggle(sensor.id)}
+                        />
+                        <label
+                          htmlFor={sensor.id}
+                          className="text-sm text-slate-700 cursor-pointer flex items-center space-x-2"
+                        >
+                          <div 
+                            className="w-3 h-3 rounded"
+                            style={{ backgroundColor: sensor.color }}
+                          />
+                          <span>{sensor.name}</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -219,7 +282,7 @@ const SensorData = () => {
                 <div key={index} className="flex items-center space-x-2">
                   <div 
                     className="w-4 h-4 rounded"
-                    style={{ backgroundColor: mode.color, opacity: mode.opacity * 5 }}
+                    style={{ backgroundColor: mode.color }}
                   />
                   <span className="text-sm text-slate-700">{mode.mode}</span>
                 </div>
@@ -231,7 +294,9 @@ const SensorData = () => {
         {/* Sensor Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Sensor Data Comparison - {vessels.find(v => v.id === selectedVessel)?.name}</CardTitle>
+            <CardTitle>
+              Sensor Data Comparison - {selectedVessels.map(id => vessels.find(v => v.id === id)?.name).join(', ')}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[600px]">
@@ -239,32 +304,21 @@ const SensorData = () => {
                 <LineChart data={sensorData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <defs>
                     {operatingModes.map((mode, index) => (
-                      <pattern
-                        key={index}
-                        id={`mode-${index}`}
-                        patternUnits="userSpaceOnUse"
-                        width="100%"
-                        height="100%"
-                      >
-                        <rect
-                          width="100%"
-                          height="100%"
-                          fill={mode.color}
-                          fillOpacity={mode.opacity}
-                        />
-                      </pattern>
+                      <linearGradient key={index} id={`mode-${index}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={mode.color} stopOpacity={0.3} />
+                        <stop offset="100%" stopColor={mode.color} stopOpacity={0.1} />
+                      </linearGradient>
                     ))}
                   </defs>
                   
-                  {/* Background rectangles for operating modes */}
+                  {/* Background areas for operating modes */}
                   {operatingModes.map((mode, index) => (
-                    <ReferenceLine
+                    <ReferenceArea
                       key={index}
-                      segment={[
-                        { x: mode.start, y: 0 },
-                        { x: mode.end, y: 100 }
-                      ]}
-                      stroke="none"
+                      x1={mode.start}
+                      x2={mode.end}
+                      fill={`url(#mode-${index})`}
+                      fillOpacity={1}
                     />
                   ))}
                   
