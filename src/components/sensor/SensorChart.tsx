@@ -2,8 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
-import OperatingModeBackground from '@/components/OperatingModeBackground';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Area, ComposedChart } from 'recharts';
 import { sensors, operatingModes, vessels, type Sensor } from '@/data/sensorDefinitions';
 import { type SensorDataPoint } from '@/utils/sensorDataGeneration';
 
@@ -39,6 +38,24 @@ const SensorChart: React.FC<SensorChartProps> = ({
       color: "hsl(var(--chart-1))",
     },
   };
+
+  // Prepare operating mode data for area charts
+  const operatingModeData = sensorData.map(dataPoint => {
+    const modeData: any = { time_percent: dataPoint.time_percent };
+    
+    // Find which operating mode this time point belongs to
+    const currentMode = operatingModes.find(mode => 
+      dataPoint.time_percent >= mode.start && dataPoint.time_percent < mode.end
+    );
+    
+    // Set values for area charts - use a high value to fill the background
+    operatingModes.forEach(mode => {
+      modeData[`mode_${mode.mode.replace(/\s+/g, '_')}`] = 
+        currentMode?.mode === mode.mode ? 1000 : 0;
+    });
+    
+    return modeData;
+  });
 
   return (
     <Card>
@@ -96,18 +113,23 @@ const SensorChart: React.FC<SensorChartProps> = ({
 
         <ChartContainer config={chartConfig}>
           <ResponsiveContainer width="100%" height={600}>
-            <LineChart 
+            <ComposedChart 
               data={sensorData} 
               margin={chartMargin}
             >
-              {/* Operating Mode Background - positioned correctly within chart area */}
-              <OperatingModeBackground
-                modes={operatingModes}
-                width={1200} // Approximate chart width
-                height={600}
-                xScale={(value: number) => (value / 100) * (1200 - chartMargin.left - chartMargin.right)}
-                margin={chartMargin}
-              />
+              {/* Operating Mode Background Areas */}
+              {operatingModes.map((mode, index) => (
+                <Area
+                  key={`mode-${index}`}
+                  type="stepAfter"
+                  dataKey={`mode_${mode.mode.replace(/\s+/g, '_')}`}
+                  data={operatingModeData}
+                  fill={mode.color}
+                  fillOpacity={0.2}
+                  stroke="none"
+                  isAnimationActive={false}
+                />
+              ))}
               
               <XAxis 
                 dataKey="time_percent"
@@ -183,27 +205,29 @@ const SensorChart: React.FC<SensorChartProps> = ({
                           {currentTime.toLocaleDateString()} {currentTime.toLocaleTimeString()}
                         </p>
                         <p className="text-sm text-slate-600 mb-2">Mode: {currentMode}</p>
-                        {payload.map((entry, index) => {
-                          const sensor = sensors.find(s => s.id === entry.dataKey);
-                          return sensor ? (
-                            <div key={index} className="flex items-center space-x-2">
-                              <div 
-                                className="w-3 h-3 rounded"
-                                style={{ backgroundColor: sensor.color }}
-                              />
-                              <span className="text-sm">
-                                {sensor.name}: {(entry.value as number).toFixed(1)} {sensor.unit}
-                              </span>
-                            </div>
-                          ) : null;
-                        })}
+                        {payload
+                          .filter(entry => !entry.dataKey?.toString().startsWith('mode_'))
+                          .map((entry, index) => {
+                            const sensor = sensors.find(s => s.id === entry.dataKey);
+                            return sensor ? (
+                              <div key={index} className="flex items-center space-x-2">
+                                <div 
+                                  className="w-3 h-3 rounded"
+                                  style={{ backgroundColor: sensor.color }}
+                                />
+                                <span className="text-sm">
+                                  {sensor.name}: {(entry.value as number).toFixed(1)} {sensor.unit}
+                                </span>
+                              </div>
+                            ) : null;
+                          })}
                       </div>
                     );
                   }
                   return null;
                 }}
               />
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
