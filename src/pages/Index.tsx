@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle, Gauge, Activity, Shield } from 'lucide-react';
 import RadialGauge from '@/components/ui/radial-gauge';
-import Sidebar from '@/components/Sidebar';
-import Operations from '@/components/modules/Operations';
-import Consumption from '@/components/modules/Consumption';
-import Maintenance from '@/components/modules/Maintenance';
-import Emissions from '@/components/modules/Emissions';
-import Timeline from '@/components/modules/Timeline';
 
 const Index = () => {
-  const [activeModule, setActiveModule] = useState<string>('dashboard');
-  const [selectedVessels, setSelectedVessels] = useState<string[]>(['vessel-c']); // Default to Vessel C
+  const [selectedVessel, setSelectedVessel] = useState<string | null>(null);
+  const [vesselFilter, setVesselFilter] = useState<string>('all');
 
   // Individual vessel data
   const vessels = [
@@ -135,7 +130,7 @@ const Index = () => {
   ];
 
   // Filter vessels based on selection
-  const filteredVessels = vessels.filter(vessel => selectedVessels.includes(vessel.id));
+  const filteredVessels = vesselFilter === 'all' ? vessels : vessels.filter(vessel => vessel.id === vesselFilter);
 
   // Fleet overview data - changes based on number of vessels selected
   const getFleetOverviewData = () => {
@@ -266,24 +261,7 @@ const Index = () => {
     );
   };
 
-  const renderModuleContent = () => {
-    switch (activeModule) {
-      case 'operations':
-        return <Operations selectedVessels={selectedVessels} />;
-      case 'consumption':
-        return <Consumption selectedVessels={selectedVessels} />;
-      case 'maintenance':
-        return <Maintenance selectedVessels={selectedVessels} />;
-      case 'emissions':
-        return <Emissions selectedVessels={selectedVessels} />;
-      case 'timeline':
-        return <Timeline selectedVessels={selectedVessels} />;
-      default:
-        return renderDashboard();
-    }
-  };
-
-  const renderDashboard = () => (
+  return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
@@ -291,186 +269,174 @@ const Index = () => {
           <p className="text-slate-600">Monitor your fleet performance, optimize fuel efficiency, and reduce emissions</p>
         </div>
 
-        {/* Selected Vessels Info */}
+        {/* Vessel Filter */}
         <div className="mb-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">Selected Vessels ({selectedVessels.length})</h3>
-            <div className="text-sm text-blue-800">
-              {filteredVessels.length === 0 ? (
-                'No vessels selected. Please select vessels from the sidebar.'
-              ) : (
-                `Monitoring: ${filteredVessels.map(v => v.name).join(', ')}`
-              )}
-            </div>
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-slate-700">Filter Vessels:</label>
+            <Select value={vesselFilter} onValueChange={setVesselFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select vessels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Vessels</SelectItem>
+                {vessels.map((vessel) => (
+                  <SelectItem key={vessel.id} value={vessel.id}>
+                    {vessel.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        {filteredVessels.length > 0 && (
-          <>
-            {/* Fleet Overview Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <TrendingUp className="h-5 w-5" />
-                    <span>{getOverviewTitle()}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {filteredVessels.length <= 2 ? (
-                    <RadialGauge data={fleetOverviewData} className="h-[300px]" />
-                  ) : (
-                    <ChartContainer config={chartConfig} className="h-[300px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart data={fleetOverviewData}>
-                          <PolarGrid />
-                          <PolarAngleAxis dataKey="metric" className="text-xs" />
-                          <PolarRadiusAxis domain={[0, 100]} className="text-xs" />
-                          <Radar
-                            name="Performance"
-                            dataKey="value"
-                            stroke="hsl(var(--chart-1))"
-                            fill="hsl(var(--chart-1))"
-                            fillOpacity={0.3}
-                            strokeWidth={2}
-                          />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
+        {/* Fleet Overview Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <TrendingUp className="h-5 w-5" />
+                <span>{getOverviewTitle()}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {filteredVessels.length <= 2 ? (
+                <RadialGauge data={fleetOverviewData} className="h-[300px]" />
+              ) : (
+                <ChartContainer config={chartConfig} className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={fleetOverviewData}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="metric" className="text-xs" />
+                      <PolarRadiusAxis domain={[0, 100]} className="text-xs" />
+                      <Radar
+                        name="Performance"
+                        dataKey="value"
+                        stroke="hsl(var(--chart-1))"
+                        fill="hsl(var(--chart-1))"
+                        fillOpacity={0.3}
+                        strokeWidth={2}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
 
-              {/* Fleet Summary card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Fleet Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-600">Total Vessels</span>
-                    <span className="font-semibold">{filteredVessels.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-600">Active</span>
-                    <span className="font-semibold text-green-600">{filteredVessels.filter(v => v.status === 'active').length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-600">In Maintenance</span>
-                    <span className="font-semibold text-orange-600">{filteredVessels.filter(v => v.status === 'maintenance').length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-600">Idle</span>
-                    <span className="font-semibold text-gray-600">{filteredVessels.filter(v => v.status === 'idle').length}</span>
-                  </div>
-                  <div className="pt-2 border-t">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-600">Avg. Efficiency</span>
-                      <span className="font-semibold">
-                        {filteredVessels.length > 0 ? Math.round(filteredVessels.reduce((acc, v) => acc + v.efficiency, 0) / filteredVessels.length) : 0}%
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          {/* Fleet Summary card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Fleet Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-600">Total Vessels</span>
+                <span className="font-semibold">{filteredVessels.length}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-600">Active</span>
+                <span className="font-semibold text-green-600">{filteredVessels.filter(v => v.status === 'active').length}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-600">In Maintenance</span>
+                <span className="font-semibold text-orange-600">{filteredVessels.filter(v => v.status === 'maintenance').length}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-600">Idle</span>
+                <span className="font-semibold text-gray-600">{filteredVessels.filter(v => v.status === 'idle').length}</span>
+              </div>
+              <div className="pt-2 border-t">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-600">Avg. Efficiency</span>
+                  <span className="font-semibold">
+                    {filteredVessels.length > 0 ? Math.round(filteredVessels.reduce((acc, v) => acc + v.efficiency, 0) / filteredVessels.length) : 0}%
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-            {/* Fleet Grid */}
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-slate-900 mb-4">Fleet Status</h2>
-            </div>
+        {/* Fleet Grid */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-slate-900 mb-4">Fleet Status</h2>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredVessels.map((vessel) => (
-                <Card key={vessel.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg">{vessel.name}</CardTitle>
-                        <p className="text-sm text-slate-600">{vessel.type}</p>
-                      </div>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(vessel.status)}`}>
-                        {getStatusIcon(vessel.status)}
-                        <span className="capitalize">{vessel.status}</span>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="mb-4">
-                      <ChartContainer config={chartConfig} className="h-[200px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <RadarChart data={vessel.data}>
-                            <PolarGrid />
-                            <PolarAngleAxis dataKey="metric" className="text-xs" />
-                            <PolarRadiusAxis domain={[0, 100]} className="text-xs" />
-                            <Radar
-                              name={vessel.name}
-                              dataKey="value"
-                              stroke="hsl(var(--chart-2))"
-                              fill="hsl(var(--chart-2))"
-                              fillOpacity={0.3}
-                              strokeWidth={2}
-                            />
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                          </RadarChart>
-                        </ResponsiveContainer>
-                      </ChartContainer>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Fuel Efficiency</span>
-                        <span className="font-medium">{vessel.efficiency}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Emissions Score</span>
-                        <span className="font-medium">{vessel.emissions}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Maintenance</span>
-                        <span className="font-medium">{vessel.maintenance}%</span>
-                      </div>
-                      <div className="text-xs text-slate-500 pt-2 border-t">
-                        Last update: {vessel.lastUpdate}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredVessels.map((vessel) => (
+            <Card key={vessel.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg">{vessel.name}</CardTitle>
+                    <p className="text-sm text-slate-600">{vessel.type}</p>
+                  </div>
+                  <div className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(vessel.status)}`}>
+                    {getStatusIcon(vessel.status)}
+                    <span className="capitalize">{vessel.status}</span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <ChartContainer config={chartConfig} className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart data={vessel.data}>
+                        <PolarGrid />
+                        <PolarAngleAxis dataKey="metric" className="text-xs" />
+                        <PolarRadiusAxis domain={[0, 100]} className="text-xs" />
+                        <Radar
+                          name={vessel.name}
+                          dataKey="value"
+                          stroke="hsl(var(--chart-2))"
+                          fill="hsl(var(--chart-2))"
+                          fillOpacity={0.3}
+                          strokeWidth={2}
+                        />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Fuel Efficiency</span>
+                    <span className="font-medium">{vessel.efficiency}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Emissions Score</span>
+                    <span className="font-medium">{vessel.emissions}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Maintenance</span>
+                    <span className="font-medium">{vessel.maintenance}%</span>
+                  </div>
+                  <div className="text-xs text-slate-500 pt-2 border-t">
+                    Last update: {vessel.lastUpdate}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-            {/* Quick Actions */}
-            <div className="mt-8 flex justify-center space-x-4">
-              <Button variant="outline" className="flex items-center space-x-2">
-                <Fuel className="h-4 w-4" />
-                <span>Fuel Report</span>
-              </Button>
-              <Button variant="outline" className="flex items-center space-x-2">
-                <TrendingUp className="h-4 w-4" />
-                <span>Emissions Report</span>
-              </Button>
-              <Button variant="outline" className="flex items-center space-x-2">
-                <Settings className="h-4 w-4" />
-                <span>Maintenance Schedule</span>
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen flex w-full">
-      <Sidebar 
-        activeModule={activeModule}
-        onModuleChange={setActiveModule}
-        selectedVessels={selectedVessels}
-        onVesselSelectionChange={setSelectedVessels}
-      />
-      <div className="flex-1">
-        {renderModuleContent()}
+        {/* Quick Actions */}
+        <div className="mt-8 flex justify-center space-x-4">
+          <Button variant="outline" className="flex items-center space-x-2">
+            <Fuel className="h-4 w-4" />
+            <span>Fuel Report</span>
+          </Button>
+          <Button variant="outline" className="flex items-center space-x-2">
+            <TrendingUp className="h-4 w-4" />
+            <span>Emissions Report</span>
+          </Button>
+          <Button variant="outline" className="flex items-center space-x-2">
+            <Settings className="h-4 w-4" />
+            <span>Maintenance Schedule</span>
+          </Button>
+        </div>
       </div>
     </div>
   );
