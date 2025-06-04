@@ -2,32 +2,28 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Calendar } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Calendar } from 'lucide-react';
 import { vessels, sensors, type Vessel, type Sensor } from '@/data/sensorDefinitions';
 
 interface SensorControlsProps {
-  selectedVessels: string[];
+  selectedVessel: string;
   selectedSensors: string[];
   dateRange: { from: string; to: string };
-  onVesselToggle: (vesselId: string) => void;
+  onVesselChange: (vesselId: string) => void;
   onSensorToggle: (sensorId: string) => void;
   onDateRangeChange: (range: { from: string; to: string }) => void;
   onSensorClick: (sensorId: string) => void;
 }
 
 const SensorControls: React.FC<SensorControlsProps> = ({
-  selectedVessels,
+  selectedVessel,
   selectedSensors,
   dateRange,
-  onVesselToggle,
+  onVesselChange,
   onSensorToggle,
   onDateRangeChange,
   onSensorClick
 }) => {
-  const navigate = useNavigate();
-
   // Group sensors by category for better organization
   const sensorsByCategory = sensors.reduce((acc, sensor) => {
     if (!acc[sensor.category]) {
@@ -92,23 +88,20 @@ const SensorControls: React.FC<SensorControlsProps> = ({
 
       {/* Vessel Selection */}
       <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 block">Select Vessels for Comparison</label>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {vessels.map(vessel => (
-            <div key={vessel.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={vessel.id}
-                checked={selectedVessels.includes(vessel.id)}
-                onCheckedChange={() => onVesselToggle(vessel.id)}
-              />
-              <label
-                htmlFor={vessel.id}
-                className="text-sm text-slate-700 cursor-pointer"
-              >
-                {vessel.name}
-              </label>
-            </div>
-          ))}
+        <label className="text-sm font-medium text-slate-700 mb-2 block">Select Vessel</label>
+        <div className="w-64">
+          <Select value={selectedVessel} onValueChange={onVesselChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a vessel" />
+            </SelectTrigger>
+            <SelectContent>
+              {vessels.map(vessel => (
+                <SelectItem key={vessel.id} value={vessel.id}>
+                  {vessel.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

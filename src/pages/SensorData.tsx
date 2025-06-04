@@ -9,18 +9,14 @@ import { useSensorData } from '@/hooks/useSensorData';
 
 const SensorData = () => {
   const navigate = useNavigate();
-  const [selectedVessels, setSelectedVessels] = useState<string[]>(['armada-7801']);
+  const [selectedVessel, setSelectedVessel] = useState<string>('armada-7801');
   const [selectedSensors, setSelectedSensors] = useState<string[]>(['engine_main_temp', 'fuel_flow_rate']);
   const [dateRange, setDateRange] = useState({ from: '2024-01-01', to: '2024-01-07' });
 
   const { sensorData, unitGroups, getAxisDomain } = useSensorData(selectedSensors, dateRange);
 
-  const handleVesselToggle = (vesselId: string) => {
-    setSelectedVessels(prev => 
-      prev.includes(vesselId) 
-        ? prev.filter(id => id !== vesselId)
-        : [...prev, vesselId]
-    );
+  const handleVesselChange = (vesselId: string) => {
+    setSelectedVessel(vesselId);
   };
 
   const handleSensorToggle = (sensorId: string) => {
@@ -57,10 +53,10 @@ const SensorData = () => {
 
         {/* Controls */}
         <SensorControls
-          selectedVessels={selectedVessels}
+          selectedVessel={selectedVessel}
           selectedSensors={selectedSensors}
           dateRange={dateRange}
-          onVesselToggle={handleVesselToggle}
+          onVesselChange={handleVesselChange}
           onSensorToggle={handleSensorToggle}
           onDateRangeChange={setDateRange}
           onSensorClick={handleSensorClick}
@@ -70,7 +66,7 @@ const SensorData = () => {
         <SensorChart
           sensorData={sensorData}
           selectedSensors={selectedSensors}
-          selectedVessels={selectedVessels}
+          selectedVessels={[selectedVessel]}
           unitGroups={unitGroups}
           dateRange={dateRange}
           getAxisDomain={getAxisDomain}
