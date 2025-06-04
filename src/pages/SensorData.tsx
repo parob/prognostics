@@ -124,6 +124,19 @@ const SensorData = () => {
 
   const sensorData = generateSensorData();
 
+  // Calculate timestamp ranges for operating modes
+  const operatingModeRanges = useMemo(() => {
+    const startDate = new Date(dateRange.from);
+    const endDate = new Date(dateRange.to);
+    const timeDiff = endDate.getTime() - startDate.getTime();
+    
+    return operatingModes.map(mode => ({
+      ...mode,
+      startTime: startDate.getTime() + (mode.start / 100) * timeDiff,
+      endTime: startDate.getTime() + (mode.end / 100) * timeDiff,
+    }));
+  }, [dateRange]);
+
   // Group sensors by unit and assign Y-axis positions
   const unitGroups = useMemo(() => {
     const groups: Record<string, { sensors: typeof sensors, yAxisId: string, position: 'left' | 'right', offset?: number }> = {};
@@ -398,31 +411,22 @@ const SensorData = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[600px] w-full">
+            <ResponsiveContainer width="100%" height={600}>
               <LineChart 
                 data={sensorData} 
                 margin={{ top: 20, right: 80, left: 80, bottom: 60 }}
-                width={800}
-                height={600}
               >
-                {/* Background areas for operating modes */}
-                {operatingModes.map((mode, index) => {
-                  const startDate = new Date(dateRange.from);
-                  const endDate = new Date(dateRange.to);
-                  const timeDiff = endDate.getTime() - startDate.getTime();
-                  const startTime = startDate.getTime() + (mode.start / 100) * timeDiff;
-                  const endTime = startDate.getTime() + (mode.end / 100) * timeDiff;
-                  
-                  return (
-                    <ReferenceArea
-                      key={index}
-                      x1={startTime}
-                      x2={endTime}
-                      fill={mode.color}
-                      fillOpacity={0.2}
-                    />
-                  );
-                })}
+                {/* Background areas for operating modes - render first so they appear behind lines */}
+                {operatingModeRanges.map((mode, index) => (
+                  <ReferenceArea
+                    key={`${mode.mode}-${index}`}
+                    x1={mode.startTime}
+                    x2={mode.endTime}
+                    fill={mode.color}
+                    fillOpacity={0.15}
+                    stroke="none"
+                  />
+                ))}
                 
                 <XAxis 
                   dataKey="timestamp" 
@@ -436,7 +440,7 @@ const SensorData = () => {
                 />
                 
                 {/* Generate Y-axes for each unit group */}
-                {Object.entries(unitGroups).map(([unit, group], index) => {
+                {Object.entries(unitGroups).map(([unit, group]) => {
                   const [minDomain, maxDomain] = getAxisDomain(unit);
                   return (
                     <YAxis
@@ -516,7 +520,7 @@ const SensorData = () => {
                   }}
                 />
               </LineChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
