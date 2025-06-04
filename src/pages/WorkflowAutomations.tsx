@@ -1,12 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Settings, Clock, Globe, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import TriggerForm from '@/components/workflow/TriggerForm';
 
 const WorkflowAutomations = () => {
-  const automations = [
+  const [automations, setAutomations] = useState([
     {
       id: '1',
       name: 'Daily Engine Check',
@@ -34,7 +35,9 @@ const WorkflowAutomations = () => {
       status: 'paused',
       nextRun: 'Paused'
     }
-  ];
+  ]);
+
+  const [isTriggerFormOpen, setIsTriggerFormOpen] = useState(false);
 
   const getTriggerIcon = (type: string) => {
     switch (type) {
@@ -45,6 +48,24 @@ const WorkflowAutomations = () => {
       default:
         return <Settings className="h-4 w-4" />;
     }
+  };
+
+  const handleCreateTrigger = (triggerData: any) => {
+    const newTrigger = {
+      id: (automations.length + 1).toString(),
+      name: triggerData.name,
+      type: triggerData.type,
+      workflow: triggerData.workflow,
+      status: 'active',
+      ...(triggerData.type === 'schedule' ? { 
+        schedule: triggerData.schedule,
+        nextRun: 'Not scheduled'
+      } : {
+        url: triggerData.webhookUrl,
+        lastTriggered: 'Never'
+      })
+    };
+    setAutomations([...automations, newTrigger]);
   };
 
   return (
@@ -60,7 +81,7 @@ const WorkflowAutomations = () => {
               </h1>
               <p className="text-slate-600">Manage triggers that activate your workflows</p>
             </div>
-            <Button>
+            <Button onClick={() => setIsTriggerFormOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Trigger
             </Button>
@@ -90,13 +111,13 @@ const WorkflowAutomations = () => {
                         <span className="text-slate-500">Workflow:</span>
                         <span>{automation.workflow}</span>
                       </div>
-                      {automation.type === 'schedule' && (
+                      {automation.type === 'schedule' && automation.schedule && (
                         <div className="flex items-center space-x-4 text-sm">
                           <span className="text-slate-500">Schedule:</span>
                           <span>{automation.schedule}</span>
                         </div>
                       )}
-                      {automation.type === 'webhook' && (
+                      {automation.type === 'webhook' && automation.url && (
                         <div className="flex items-center space-x-4 text-sm">
                           <span className="text-slate-500">Webhook URL:</span>
                           <span className="font-mono text-xs bg-slate-100 px-2 py-1 rounded">{automation.url}</span>
@@ -124,6 +145,12 @@ const WorkflowAutomations = () => {
           ))}
         </div>
       </div>
+
+      <TriggerForm
+        isOpen={isTriggerFormOpen}
+        onClose={() => setIsTriggerFormOpen(false)}
+        onSubmit={handleCreateTrigger}
+      />
     </div>
   );
 };

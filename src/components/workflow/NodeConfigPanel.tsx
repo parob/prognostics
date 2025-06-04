@@ -1,47 +1,58 @@
 
 import React from 'react';
-import { Node } from '@xyflow/react';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 interface NodeConfigPanelProps {
-  node: Node;
-  onUpdateNode: (nodeId: string, newData: any) => void;
+  selectedNode: any;
+  onUpdateNode: (nodeId: string, data: any) => void;
 }
 
-const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node, onUpdateNode }) => {
+const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ selectedNode, onUpdateNode }) => {
+  if (!selectedNode) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle>Node Configuration</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-slate-500">Select a node to configure its properties</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const handleInputChange = (field: string, value: string) => {
-    onUpdateNode(node.id, { [field]: value });
+    onUpdateNode(selectedNode.id, {
+      ...selectedNode.data,
+      [field]: value
+    });
   };
 
   const renderNodeConfig = () => {
-    switch (node.type) {
+    switch (selectedNode.type) {
       case 'sensorInput':
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="sensorType">Sensor Type</Label>
-              <Select onValueChange={(value) => handleInputChange('sensorType', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select sensor type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="temperature">Temperature</SelectItem>
-                  <SelectItem value="pressure">Pressure</SelectItem>
-                  <SelectItem value="vibration">Vibration</SelectItem>
-                  <SelectItem value="fuel">Fuel Level</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="label">Label</Label>
+              <Input
+                id="label"
+                value={selectedNode.data?.label || ''}
+                onChange={(e) => handleInputChange('label', e.target.value)}
+                placeholder="Sensor name"
+              />
             </div>
             <div>
-              <Label htmlFor="sensorId">Sensor ID</Label>
+              <Label htmlFor="sensorType">Sensor Type</Label>
               <Input
-                id="sensorId"
-                placeholder="Enter sensor ID"
-                onChange={(e) => handleInputChange('sensorId', e.target.value)}
+                id="sensorType"
+                value={selectedNode.data?.sensorType || ''}
+                onChange={(e) => handleInputChange('sensorType', e.target.value)}
+                placeholder="Temperature, Pressure, etc."
               />
             </div>
           </div>
@@ -51,26 +62,22 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node, onUpdateNode })
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="condition">Condition</Label>
-              <Textarea
-                id="condition"
-                placeholder="e.g., temperature > 80"
-                onChange={(e) => handleInputChange('condition', e.target.value)}
+              <Label htmlFor="label">Label</Label>
+              <Input
+                id="label"
+                value={selectedNode.data?.label || ''}
+                onChange={(e) => handleInputChange('label', e.target.value)}
+                placeholder="Condition name"
               />
             </div>
             <div>
-              <Label htmlFor="operator">Operator</Label>
-              <Select onValueChange={(value) => handleInputChange('operator', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select operator" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="greater_than">Greater than</SelectItem>
-                  <SelectItem value="less_than">Less than</SelectItem>
-                  <SelectItem value="equals">Equals</SelectItem>
-                  <SelectItem value="between">Between</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="condition">Condition</Label>
+              <Textarea
+                id="condition"
+                value={selectedNode.data?.condition || ''}
+                onChange={(e) => handleInputChange('condition', e.target.value)}
+                placeholder="temperature > 80"
+              />
             </div>
           </div>
         );
@@ -79,25 +86,21 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node, onUpdateNode })
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="alertType">Alert Type</Label>
-              <Select onValueChange={(value) => handleInputChange('alertType', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select alert type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="sms">SMS</SelectItem>
-                  <SelectItem value="slack">Slack</SelectItem>
-                  <SelectItem value="webhook">Webhook</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="label">Label</Label>
+              <Input
+                id="label"
+                value={selectedNode.data?.label || ''}
+                onChange={(e) => handleInputChange('label', e.target.value)}
+                placeholder="Alert name"
+              />
             </div>
             <div>
-              <Label htmlFor="message">Message</Label>
-              <Textarea
-                id="message"
-                placeholder="Enter alert message"
-                onChange={(e) => handleInputChange('message', e.target.value)}
+              <Label htmlFor="alertType">Alert Type</Label>
+              <Input
+                id="alertType"
+                value={selectedNode.data?.alertType || ''}
+                onChange={(e) => handleInputChange('alertType', e.target.value)}
+                placeholder="Email, SMS, Webhook"
               />
             </div>
           </div>
@@ -107,51 +110,43 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({ node, onUpdateNode })
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="functionName">Function Name</Label>
+              <Label htmlFor="label">Label</Label>
               <Input
-                id="functionName"
-                placeholder="Enter function name"
-                onChange={(e) => handleInputChange('functionName', e.target.value)}
+                id="label"
+                value={selectedNode.data?.label || ''}
+                onChange={(e) => handleInputChange('label', e.target.value)}
+                placeholder="Function name"
               />
             </div>
             <div>
-              <Label htmlFor="parameters">Parameters</Label>
-              <Textarea
-                id="parameters"
-                placeholder="Enter function parameters (JSON)"
-                onChange={(e) => handleInputChange('parameters', e.target.value)}
+              <Label htmlFor="functionName">Function</Label>
+              <Input
+                id="functionName"
+                value={selectedNode.data?.functionName || ''}
+                onChange={(e) => handleInputChange('functionName', e.target.value)}
+                placeholder="analyze-sensor-data"
               />
             </div>
           </div>
         );
       
       default:
-        return <div>No configuration available for this node type.</div>;
+        return <p>No configuration available for this node type.</p>;
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="nodeLabel">Node Label</Label>
-        <Input
-          id="nodeLabel"
-          value={node.data.label || ''}
-          onChange={(e) => handleInputChange('label', e.target.value)}
-        />
-      </div>
-      
-      {renderNodeConfig()}
-      
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="w-full"
-        onClick={() => console.log('Node configured:', node)}
-      >
-        Apply Changes
-      </Button>
-    </div>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle>{selectedNode.type} Configuration</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {renderNodeConfig()}
+        <div className="mt-6">
+          <Button className="w-full">Save Configuration</Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
