@@ -2,25 +2,29 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Info } from 'lucide-react';
+import { Calendar, Info, X } from 'lucide-react';
 import { vessels, sensors, type Vessel, type Sensor } from '@/data/sensorDefinitions';
 
 interface SensorControlsProps {
-  selectedVessel: string;
   selectedSensors: string[];
+  visibleSensors: string[];
   dateRange: { from: string; to: string };
   onVesselChange: (vesselId: string) => void;
   onSensorToggle: (sensorId: string) => void;
+  onSensorVisibilityToggle: (sensorId: string) => void;
+  onSensorRemove: (sensorId: string) => void;
   onDateRangeChange: (range: { from: string; to: string }) => void;
   onSensorClick: (sensorId: string) => void;
 }
 
 const SensorControls: React.FC<SensorControlsProps> = ({
-  selectedVessel,
   selectedSensors,
+  visibleSensors,
   dateRange,
   onVesselChange,
   onSensorToggle,
+  onSensorVisibilityToggle,
+  onSensorRemove,
   onDateRangeChange,
   onSensorClick
 }) => {
@@ -101,7 +105,7 @@ const SensorControls: React.FC<SensorControlsProps> = ({
         <div className="flex items-center space-x-4">
           {/* Vessel Selection */}
           <div className="w-48">
-            <Select value={selectedVessel} onValueChange={onVesselChange}>
+            <Select onValueChange={onVesselChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a vessel" />
               </SelectTrigger>
@@ -152,18 +156,27 @@ const SensorControls: React.FC<SensorControlsProps> = ({
         <div className="flex flex-wrap gap-2">
           {selectedSensors.map(sensorId => {
             const sensor = sensors.find(s => s.id === sensorId);
+            const isVisible = visibleSensors.includes(sensorId);
             return sensor ? (
               <div
                 key={sensorId}
-                className="flex items-center space-x-2 bg-white border border-slate-300 rounded-lg px-3 py-2 group"
+                className={`flex items-center space-x-2 border border-slate-300 rounded-lg px-3 py-2 group transition-all ${
+                  isVisible 
+                    ? 'bg-white' 
+                    : 'bg-slate-100 opacity-60'
+                }`}
               >
                 <div 
                   className="w-3 h-3 rounded"
-                  style={{ backgroundColor: sensor.color }}
+                  style={{ backgroundColor: isVisible ? sensor.color : '#94a3b8' }}
                 />
                 <button
-                  onClick={() => onSensorToggle(sensorId)}
-                  className="text-sm text-slate-700 hover:text-slate-900 transition-colors"
+                  onClick={() => onSensorVisibilityToggle(sensorId)}
+                  className={`text-sm transition-colors ${
+                    isVisible 
+                      ? 'text-slate-700 hover:text-slate-900' 
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
                 >
                   {sensor.name} ({sensor.unit})
                 </button>
@@ -175,11 +188,11 @@ const SensorControls: React.FC<SensorControlsProps> = ({
                   <Info className="h-3 w-3" />
                 </button>
                 <button
-                  onClick={() => onSensorToggle(sensorId)}
-                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                  onClick={() => onSensorRemove(sensorId)}
+                  className="text-slate-400 hover:text-red-600 transition-colors"
                   title="Remove sensor"
                 >
-                  ×
+                  <X className="h-3 w-3" />
                 </button>
               </div>
             ) : null;

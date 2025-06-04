@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
@@ -15,6 +16,7 @@ interface UnitGroup {
 interface SensorChartProps {
   sensorData: SensorDataPoint[];
   selectedSensors: string[];
+  visibleSensors: string[];
   selectedVessels: string[];
   unitGroups: Record<string, UnitGroup>;
   dateRange: { from: string; to: string };
@@ -24,6 +26,7 @@ interface SensorChartProps {
 const SensorChart: React.FC<SensorChartProps> = ({
   sensorData,
   selectedSensors,
+  visibleSensors,
   selectedVessels,
   unitGroups,
   dateRange,
@@ -120,15 +123,18 @@ const SensorChart: React.FC<SensorChartProps> = ({
                       {unit} ({group.position === 'left' ? 'L' : 'R'})
                     </div>
                     <div className="flex items-center space-x-1">
-                      {group.sensors.map((sensor) => (
-                        <div key={sensor.id} className="flex items-center space-x-1">
-                          <div 
-                            className="w-2 h-2 rounded"
-                            style={{ backgroundColor: sensor.color }}
-                          />
-                          <span className="text-xs text-slate-500">{sensor.name}</span>
-                        </div>
-                      ))}
+                      {group.sensors.map((sensor) => {
+                        const isVisible = visibleSensors.includes(sensor.id);
+                        return (
+                          <div key={sensor.id} className={`flex items-center space-x-1 ${!isVisible ? 'opacity-50' : ''}`}>
+                            <div 
+                              className="w-2 h-2 rounded"
+                              style={{ backgroundColor: isVisible ? sensor.color : '#94a3b8' }}
+                            />
+                            <span className="text-xs text-slate-500">{sensor.name}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -201,10 +207,11 @@ const SensorChart: React.FC<SensorChartProps> = ({
                 );
               })}
               
-              {/* Generate lines for each selected sensor */}
+              {/* Generate lines for each selected sensor - only show if visible */}
               {selectedSensors.map(sensorId => {
                 const sensor = sensors.find(s => s.id === sensorId);
-                if (!sensor) return null;
+                const isVisible = visibleSensors.includes(sensorId);
+                if (!sensor || !isVisible) return null;
                 
                 const yAxisId = unitGroups[sensor.unit]?.yAxisId;
                 if (!yAxisId) return null;
