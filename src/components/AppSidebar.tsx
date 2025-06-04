@@ -36,7 +36,7 @@ const sensorItems = [
     icon: List,
   },
   {
-    title: "Sensor Data",
+    title: "Sensor Explorer",
     url: "/sensor-data",
     icon: Database,
   },
