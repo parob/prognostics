@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Database } from 'lucide-react';
+import { Database } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SensorControls from '@/components/sensor/SensorControls';
 import SensorChart from '@/components/sensor/SensorChart';
@@ -56,18 +55,12 @@ const SensorData = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={() => navigate('/')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Fleet
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 flex items-center space-x-2">
-                <Database className="h-8 w-8" />
-                <span>Sensor Data</span>
-              </h1>
-              <p className="text-slate-600">Real-time and historical sensor monitoring</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 flex items-center space-x-2">
+              <Database className="h-8 w-8" />
+              <span>Sensor Data</span>
+            </h1>
+            <p className="text-slate-600">Real-time and historical sensor monitoring</p>
           </div>
         </div>
 
