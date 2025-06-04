@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Rectangle } from 'recharts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -28,10 +28,10 @@ const HistoricalData = () => {
   ];
 
   const vesselModes = {
-    'steaming': { color: '#22c55e', label: 'Steaming' },
-    'fishing': { color: '#3b82f6', label: 'Fishing' },
-    'anchored': { color: '#ef4444', label: 'Anchored' },
-    'maneuvering': { color: '#f59e0b', label: 'Maneuvering' }
+    'steaming': { color: '#22c55e', label: 'Steaming', opacity: 0.1 },
+    'fishing': { color: '#3b82f6', label: 'Fishing', opacity: 0.1 },
+    'anchored': { color: '#ef4444', label: 'Anchored', opacity: 0.1 },
+    'maneuvering': { color: '#f59e0b', label: 'Maneuvering', opacity: 0.1 }
   };
 
   // Generate sample historical data with vessel modes
@@ -91,6 +91,45 @@ const HistoricalData = () => {
 
   const chartData = generateHistoricalData();
 
+  // Generate mode backgrounds for charts
+  const generateModeBackgrounds = (data: any[]) => {
+    const backgrounds: any[] = [];
+    let currentMode = null;
+    let modeStart = 0;
+
+    data.forEach((dataPoint, index) => {
+      // Use the first selected vessel's mode for background
+      const vesselId = selectedVessels[0]?.replace('ARMADA ', '');
+      const mode = dataPoint[`${vesselId}_mode`];
+
+      if (mode !== currentMode) {
+        if (currentMode !== null && index > 0) {
+          // End previous mode section
+          backgrounds.push({
+            mode: currentMode,
+            start: modeStart,
+            end: index - 1,
+            color: vesselModes[currentMode as keyof typeof vesselModes]?.color || '#e5e7eb'
+          });
+        }
+        currentMode = mode;
+        modeStart = index;
+      }
+
+      // Handle last section
+      if (index === data.length - 1) {
+        backgrounds.push({
+          mode: currentMode,
+          start: modeStart,
+          end: index,
+          color: vesselModes[currentMode as keyof typeof vesselModes]?.color || '#e5e7eb'
+        });
+      }
+    });
+
+    return backgrounds;
+  };
+
   // Normalize data for comparison
   const normalizeData = (data: any[], sensor: string) => {
     const values = data.map(d => {
@@ -114,6 +153,32 @@ const HistoricalData = () => {
       });
       return normalized;
     });
+  };
+
+  // Custom background component for vessel modes
+  const ModeBackground = ({ payload, backgrounds }: any) => {
+    if (!backgrounds || backgrounds.length === 0) return null;
+
+    return (
+      <>
+        {backgrounds.map((bg: any, index: number) => {
+          const startX = (bg.start / (chartData.length - 1)) * 100;
+          const width = ((bg.end - bg.start + 1) / (chartData.length - 1)) * 100;
+          
+          return (
+            <Rectangle
+              key={`mode-bg-${index}`}
+              x={`${startX}%`}
+              y="0%"
+              width={`${width}%`}
+              height="100%"
+              fill={bg.color}
+              fillOpacity={0.1}
+            />
+          );
+        })}
+      </>
+    );
   };
 
   const handleVesselToggle = (vessel: string) => {
@@ -242,6 +307,7 @@ const HistoricalData = () => {
             {selectedSensors.map((sensor) => {
               const sensorInfo = sensors.find(s => s.id === sensor);
               const normalizedData = normalizeData(chartData, sensor);
+              const modeBackgrounds = generateModeBackgrounds(normalizedData);
               
               return (
                 <Card key={sensor}>
@@ -255,6 +321,36 @@ const HistoricalData = () => {
                     >
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={normalizedData}>
+                          <defs>
+                            {modeBackgrounds.map((bg, index) => (
+                              <pattern key={`pattern-${index}`} id={`mode-pattern-${index}`} patternUnits="userSpaceOnUse" width="100%" height="100%">
+                                <rect width="100%" height="100%" fill={bg.color} fillOpacity={0.1} />
+                              </pattern>
+                            ))}
+                          </defs>
+                          
+                          {/* Mode background rectangles */}
+                          {modeBackgrounds.map((bg, index) => {
+                            const startIndex = bg.start;
+                            const endIndex = bg.end;
+                            const startDate = normalizedData[startIndex]?.date;
+                            const endDate = normalizedData[endIndex]?.date;
+                            
+                            if (!startDate || !endDate) return null;
+                            
+                            return (
+                              <Rectangle
+                                key={`mode-rect-${index}`}
+                                x={startIndex * (100 / (normalizedData.length - 1)) + '%'}
+                                y="0%"
+                                width={(endIndex - startIndex + 1) * (100 / normalizedData.length) + '%'}
+                                height="100%"
+                                fill={bg.color}
+                                fillOpacity={0.15}
+                              />
+                            );
+                          })}
+                          
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                           <XAxis 
                             dataKey="date" 
@@ -276,7 +372,6 @@ const HistoricalData = () => {
                             ]}
                           />
                           
-                          {/* Background areas for vessel modes */}
                           {selectedVessels.map((vessel, vesselIndex) => {
                             const vesselId = vessel.replace('ARMADA ', '');
                             return (
