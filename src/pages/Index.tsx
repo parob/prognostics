@@ -1,15 +1,15 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle, Gauge, Activity, Shield } from 'lucide-react';
 import RadialGauge from '@/components/ui/radial-gauge';
 
 const Index = () => {
-  const [selectedVessel, setSelectedVessel] = useState<string | null>(null);
-  const [vesselFilter, setVesselFilter] = useState<string>('all');
+  const [selectedVessels, setSelectedVessels] = useState<string[]>(['vessel-a', 'vessel-b', 'vessel-c', 'vessel-d', 'vessel-e', 'vessel-f']);
 
   // Individual vessel data
   const vessels = [
@@ -130,7 +130,23 @@ const Index = () => {
   ];
 
   // Filter vessels based on selection
-  const filteredVessels = vesselFilter === 'all' ? vessels : vessels.filter(vessel => vessel.id === vesselFilter);
+  const filteredVessels = vessels.filter(vessel => selectedVessels.includes(vessel.id));
+
+  const handleVesselToggle = (vesselId: string) => {
+    setSelectedVessels(prev => 
+      prev.includes(vesselId) 
+        ? prev.filter(id => id !== vesselId)
+        : [...prev, vesselId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedVessels.length === vessels.length) {
+      setSelectedVessels([]);
+    } else {
+      setSelectedVessels(vessels.map(v => v.id));
+    }
+  };
 
   // Fleet overview data - changes based on number of vessels selected
   const getFleetOverviewData = () => {
@@ -271,21 +287,37 @@ const Index = () => {
 
         {/* Vessel Filter */}
         <div className="mb-6">
-          <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-slate-700">Filter Vessels:</label>
-            <Select value={vesselFilter} onValueChange={setVesselFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select vessels" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Vessels</SelectItem>
+          <div className="flex items-start space-x-4">
+            <label className="text-sm font-medium text-slate-700 mt-2">Filter Vessels:</label>
+            <div className="bg-white border border-gray-200 rounded-lg p-4 min-w-[300px]">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-slate-700">Select Vessels ({selectedVessels.length}/{vessels.length})</span>
+                <button
+                  onClick={handleSelectAll}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  {selectedVessels.length === vessels.length ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
                 {vessels.map((vessel) => (
-                  <SelectItem key={vessel.id} value={vessel.id}>
-                    {vessel.name}
-                  </SelectItem>
+                  <div key={vessel.id} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={vessel.id}
+                      checked={selectedVessels.includes(vessel.id)}
+                      onCheckedChange={() => handleVesselToggle(vessel.id)}
+                    />
+                    <label
+                      htmlFor={vessel.id}
+                      className="text-sm text-slate-700 cursor-pointer flex-1"
+                    >
+                      {vessel.name}
+                    </label>
+                    <div className={`w-2 h-2 rounded-full ${vessel.status === 'active' ? 'bg-green-500' : vessel.status === 'maintenance' ? 'bg-orange-500' : 'bg-gray-500'}`}></div>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            </div>
           </div>
         </div>
 
