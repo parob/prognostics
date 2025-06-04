@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
-import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle, Gauge, Activity, Shield } from 'lucide-react';
 
 const Index = () => {
   const [selectedVessel, setSelectedVessel] = useState<string | null>(null);
@@ -133,27 +133,22 @@ const Index = () => {
 
   // Fleet overview data - changes based on number of vessels selected
   const getFleetOverviewData = () => {
-    if (filteredVessels.length <= 2) {
-      // For 1-2 vessels, show subsystem breakdown
-      if (filteredVessels.length === 1) {
-        return filteredVessels[0].data;
-      } else {
-        // For 2 vessels, show average subsystem performance
-        const subsystems = ['Engine', 'Fuel', 'Emissions', 'Navigation', 'Safety', 'Maintenance'];
-        return subsystems.map(subsystem => {
-          const avgValue = Math.round(
-            filteredVessels.reduce((acc, vessel) => {
-              const subsystemData = vessel.data.find(d => d.metric === subsystem);
-              return acc + (subsystemData ? subsystemData.value : 0);
-            }, 0) / filteredVessels.length
-          );
-          return {
-            metric: subsystem,
-            value: avgValue,
-            fullMark: 100
-          };
-        });
-      }
+    if (filteredVessels.length === 2) {
+      // For 2 vessels, show average subsystem performance
+      const subsystems = ['Engine', 'Fuel', 'Emissions', 'Navigation', 'Safety', 'Maintenance'];
+      return subsystems.map(subsystem => {
+        const avgValue = Math.round(
+          filteredVessels.reduce((acc, vessel) => {
+            const subsystemData = vessel.data.find(d => d.metric === subsystem);
+            return acc + (subsystemData ? subsystemData.value : 0);
+          }, 0) / filteredVessels.length
+        );
+        return {
+          metric: subsystem,
+          value: avgValue,
+          fullMark: 100
+        };
+      });
     } else {
       // For 3+ vessels, show vessel overview
       return filteredVessels.map(vessel => ({
@@ -168,7 +163,7 @@ const Index = () => {
 
   const getOverviewTitle = () => {
     if (filteredVessels.length === 1) {
-      return `${filteredVessels[0].name} - Subsystem Performance`;
+      return `${filteredVessels[0].name} - Performance Dashboard`;
     } else if (filteredVessels.length === 2) {
       return `${filteredVessels[0].name} & ${filteredVessels[1].name} - Avg. Subsystem Performance`;
     } else {
@@ -199,6 +194,71 @@ const Index = () => {
       label: "Performance",
       color: "hsl(var(--chart-1))",
     },
+  };
+
+  // Single vessel overview component
+  const SingleVesselOverview = ({ vessel }: { vessel: typeof vessels[0] }) => {
+    const overallScore = Math.round((vessel.efficiency + vessel.emissions + vessel.maintenance + vessel.operations) / 4);
+    
+    const getScoreColor = (score: number) => {
+      if (score >= 85) return 'text-green-600';
+      if (score >= 70) return 'text-yellow-600';
+      return 'text-red-600';
+    };
+
+    const getScoreBgColor = (score: number) => {
+      if (score >= 85) return 'bg-green-100';
+      if (score >= 70) return 'bg-yellow-100';
+      return 'bg-red-100';
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Vessel Header */}
+        <div className="text-center space-y-2">
+          <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(vessel.status)}`}>
+            {getStatusIcon(vessel.status)}
+            <span className="capitalize">{vessel.status}</span>
+          </div>
+          <p className="text-slate-600">{vessel.type}</p>
+          <p className="text-xs text-slate-500">Last update: {vessel.lastUpdate}</p>
+        </div>
+
+        {/* Overall Performance Score */}
+        <div className="text-center">
+          <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full ${getScoreBgColor(overallScore)} mb-2`}>
+            <div className="text-center">
+              <div className={`text-2xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}</div>
+              <div className="text-xs text-slate-600">Overall</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Key Metrics Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-blue-50 p-4 rounded-lg text-center">
+            <Fuel className="h-6 w-6 text-blue-600 mx-auto mb-2" />
+            <div className="text-lg font-semibold text-blue-900">{vessel.efficiency}%</div>
+            <div className="text-sm text-blue-700">Fuel Efficiency</div>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg text-center">
+            <Activity className="h-6 w-6 text-green-600 mx-auto mb-2" />
+            <div className="text-lg font-semibold text-green-900">{vessel.emissions}%</div>
+            <div className="text-sm text-green-700">Emissions Score</div>
+          </div>
+          <div className="bg-orange-50 p-4 rounded-lg text-center">
+            <Settings className="h-6 w-6 text-orange-600 mx-auto mb-2" />
+            <div className="text-lg font-semibold text-orange-900">{vessel.maintenance}%</div>
+            <div className="text-sm text-orange-700">Maintenance</div>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg text-center">
+            <Gauge className="h-6 w-6 text-purple-600 mx-auto mb-2" />
+            <div className="text-lg font-semibold text-purple-900">{vessel.operations}%</div>
+            <div className="text-sm text-purple-700">Operations</div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -239,24 +299,28 @@ const Index = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={fleetOverviewData}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="metric" className="text-xs" />
-                    <PolarRadiusAxis domain={[0, 100]} className="text-xs" />
-                    <Radar
-                      name="Performance"
-                      dataKey="value"
-                      stroke="hsl(var(--chart-1))"
-                      fill="hsl(var(--chart-1))"
-                      fillOpacity={0.3}
-                      strokeWidth={2}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+              {filteredVessels.length === 1 ? (
+                <SingleVesselOverview vessel={filteredVessels[0]} />
+              ) : (
+                <ChartContainer config={chartConfig} className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={fleetOverviewData}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="metric" className="text-xs" />
+                      <PolarRadiusAxis domain={[0, 100]} className="text-xs" />
+                      <Radar
+                        name="Performance"
+                        dataKey="value"
+                        stroke="hsl(var(--chart-1))"
+                        fill="hsl(var(--chart-1))"
+                        fillOpacity={0.3}
+                        strokeWidth={2}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
             </CardContent>
           </Card>
 
