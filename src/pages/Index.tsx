@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,16 +7,6 @@ import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle } from 'lucide-r
 
 const Index = () => {
   const [selectedVessel, setSelectedVessel] = useState<string | null>(null);
-
-  // Fleet overview data for spider chart
-  const fleetOverviewData = [
-    { metric: 'Fuel Efficiency', value: 85, fullMark: 100 },
-    { metric: 'Emissions', value: 78, fullMark: 100 },
-    { metric: 'Maintenance', value: 92, fullMark: 100 },
-    { metric: 'Operations', value: 88, fullMark: 100 },
-    { metric: 'Compliance', value: 95, fullMark: 100 },
-    { metric: 'Performance', value: 82, fullMark: 100 },
-  ];
 
   // Individual vessel data
   const vessels = [
@@ -137,6 +126,13 @@ const Index = () => {
     },
   ];
 
+  // Fleet overview data for spider chart - showing all vessels
+  const fleetOverviewData = vessels.map(vessel => ({
+    metric: vessel.name,
+    value: Math.round((vessel.efficiency + vessel.emissions + vessel.maintenance + vessel.operations) / 4),
+    fullMark: 100
+  }));
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'text-green-600 bg-green-100';
@@ -201,6 +197,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
+          {/* Fleet Summary card */}
           <Card>
             <CardHeader>
               <CardTitle>Fleet Summary</CardTitle>
