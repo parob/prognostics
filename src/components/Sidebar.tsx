@@ -1,21 +1,13 @@
 
 import React from 'react';
 import { Search, Settings, Database, Gauge, TrendingUp, FileText } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface SidebarProps {
   activeModule: string;
   onModuleChange: (module: string) => void;
-  selectedVessels: string[];
-  onVesselSelectionChange: (vesselIds: string[]) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ 
-  activeModule, 
-  onModuleChange, 
-  selectedVessels, 
-  onVesselSelectionChange 
-}) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeModule, onModuleChange }) => {
   const vessels = [
     { id: 'vessel-a', name: 'Vessel A', active: false },
     { id: 'vessel-b', name: 'Vessel B', active: false },
@@ -31,21 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'maintenance', name: 'Condition Based Maintenance', icon: Settings },
     { id: 'emissions', name: 'Emission & Reporting', icon: TrendingUp },
     { id: 'timeline', name: 'Vessel Operation Timeline', icon: FileText },
-    { id: 'history', name: 'Data History', icon: TrendingUp },
   ];
-
-  const handleVesselToggle = (vesselId: string) => {
-    const isSelected = selectedVessels.includes(vesselId);
-    let newSelection;
-    
-    if (isSelected) {
-      newSelection = selectedVessels.filter(id => id !== vesselId);
-    } else {
-      newSelection = [...selectedVessels, vesselId];
-    }
-    
-    onVesselSelectionChange(newSelection);
-  };
 
   return (
     <div className="w-64 bg-slate-800 text-white h-full flex flex-col">
@@ -75,17 +53,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               <div
                 key={vessel.id}
                 className={`flex items-center space-x-3 px-3 py-2 rounded cursor-pointer transition-colors ${
-                  selectedVessels.includes(vessel.id)
+                  vessel.active 
                     ? 'bg-yellow-500 text-slate-900' 
                     : 'text-slate-300 hover:bg-slate-700'
                 }`}
-                onClick={() => handleVesselToggle(vessel.id)}
               >
-                <Checkbox 
-                  checked={selectedVessels.includes(vessel.id)}
-                  onChange={() => handleVesselToggle(vessel.id)}
-                  className="w-4 h-4"
-                />
                 <div className="w-2 h-2 bg-current rounded-full opacity-60"></div>
                 <span className="text-sm">{vessel.name}</span>
               </div>
