@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -132,12 +131,50 @@ const Index = () => {
   // Filter vessels based on selection
   const filteredVessels = vesselFilter === 'all' ? vessels : vessels.filter(vessel => vessel.id === vesselFilter);
 
-  // Fleet overview data for spider chart - showing filtered vessels
-  const fleetOverviewData = filteredVessels.map(vessel => ({
-    metric: vessel.name,
-    value: Math.round((vessel.efficiency + vessel.emissions + vessel.maintenance + vessel.operations) / 4),
-    fullMark: 100
-  }));
+  // Fleet overview data - changes based on number of vessels selected
+  const getFleetOverviewData = () => {
+    if (filteredVessels.length <= 2) {
+      // For 1-2 vessels, show subsystem breakdown
+      if (filteredVessels.length === 1) {
+        return filteredVessels[0].data;
+      } else {
+        // For 2 vessels, show average subsystem performance
+        const subsystems = ['Engine', 'Fuel', 'Emissions', 'Navigation', 'Safety', 'Maintenance'];
+        return subsystems.map(subsystem => {
+          const avgValue = Math.round(
+            filteredVessels.reduce((acc, vessel) => {
+              const subsystemData = vessel.data.find(d => d.metric === subsystem);
+              return acc + (subsystemData ? subsystemData.value : 0);
+            }, 0) / filteredVessels.length
+          );
+          return {
+            metric: subsystem,
+            value: avgValue,
+            fullMark: 100
+          };
+        });
+      }
+    } else {
+      // For 3+ vessels, show vessel overview
+      return filteredVessels.map(vessel => ({
+        metric: vessel.name,
+        value: Math.round((vessel.efficiency + vessel.emissions + vessel.maintenance + vessel.operations) / 4),
+        fullMark: 100
+      }));
+    }
+  };
+
+  const fleetOverviewData = getFleetOverviewData();
+
+  const getOverviewTitle = () => {
+    if (filteredVessels.length === 1) {
+      return `${filteredVessels[0].name} - Subsystem Performance`;
+    } else if (filteredVessels.length === 2) {
+      return `${filteredVessels[0].name} & ${filteredVessels[1].name} - Avg. Subsystem Performance`;
+    } else {
+      return 'Fleet Performance Overview';
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -198,7 +235,7 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5" />
-                <span>Fleet Performance Overview</span>
+                <span>{getOverviewTitle()}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -209,7 +246,7 @@ const Index = () => {
                     <PolarAngleAxis dataKey="metric" className="text-xs" />
                     <PolarRadiusAxis domain={[0, 100]} className="text-xs" />
                     <Radar
-                      name="Fleet Performance"
+                      name="Performance"
                       dataKey="value"
                       stroke="hsl(var(--chart-1))"
                       fill="hsl(var(--chart-1))"
