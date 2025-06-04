@@ -1,11 +1,53 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import Operations from '../components/modules/Operations';
+import Consumption from '../components/modules/Consumption';
+import Maintenance from '../components/modules/Maintenance';
+import Emissions from '../components/modules/Emissions';
+import Timeline from '../components/modules/Timeline';
 
 const Index = () => {
+  const [activeModule, setActiveModule] = useState('operations');
+
+  const moduleComponents = {
+    operations: <Operations />,
+    consumption: <Consumption />,
+    maintenance: <Maintenance />,
+    emissions: <Emissions />,
+    timeline: <Timeline />
+  };
+
+  const moduleTitles = {
+    operations: 'Operations',
+    consumption: 'Consumption Dashboard',
+    maintenance: 'Condition Based Maintenance',
+    emissions: 'Emission & MRV Reporting',
+    timeline: 'Vessel Operation Timeline'
+  };
+
+  const moduleSubtitles = {
+    operations: 'Complete operational profile with fuel efficiency benchmarking',
+    consumption: 'KPIs analysis and fuel consumption optimization',
+    maintenance: 'Engine and thruster condition monitoring with load profiles',
+    emissions: 'Compliance reporting and emission tracking',
+    timeline: 'Detailed vessel operation timeline and route tracking'
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="h-screen flex bg-slate-100">
+      <Sidebar activeModule={activeModule} onModuleChange={setActiveModule} />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header 
+          title={moduleTitles[activeModule as keyof typeof moduleTitles]}
+          subtitle={moduleSubtitles[activeModule as keyof typeof moduleSubtitles]}
+        />
+        
+        <div className="flex-1 overflow-auto">
+          {moduleComponents[activeModule as keyof typeof moduleComponents]}
+        </div>
       </div>
     </div>
   );
