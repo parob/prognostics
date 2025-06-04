@@ -54,8 +54,9 @@ const OperatingModeBackground: React.FC<OperatingModeBackgroundProps> = ({
             width={clampedWidth}
             height={plotHeight}
             fill={mode.color}
-            fillOpacity={0.2}
+            fillOpacity={0.3}
             stroke="none"
+            pointerEvents="none"
           />
         );
       })}
