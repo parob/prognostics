@@ -57,6 +57,9 @@ const SensorChart: React.FC<SensorChartProps> = ({
     return enhancedPoint;
   });
 
+  // Get the first available yAxisId for operating mode backgrounds
+  const firstYAxisId = Object.values(unitGroups)[0]?.yAxisId || 'yAxis-default';
+
   return (
     <Card>
       <CardHeader>
@@ -127,6 +130,7 @@ const SensorChart: React.FC<SensorChartProps> = ({
                   fillOpacity={0.2}
                   stroke="none"
                   isAnimationActive={false}
+                  yAxisId={firstYAxisId}
                 />
               ))}
               
