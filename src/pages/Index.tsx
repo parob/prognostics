@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
-import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle, Gauge, Activity, Shield, ChevronDown } from 'lucide-react';
+import { Settings, TrendingUp, Fuel, AlertTriangle, CheckCircle, Gauge, Activity, Shield, ChevronDown, Droplets } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import RadialGauge from '@/components/ui/radial-gauge';
 import VesselDetailModal from '@/components/VesselDetailModal';
@@ -38,6 +38,11 @@ const Index = () => {
       speed: 0,
       course: 244,
       destination: 'BREIDABLIKK FIELD',
+      fuelTanks: {
+        tank1: { level: 75, capacity: 1200, current: 900 },
+        tank2: { level: 68, capacity: 1200, current: 816 },
+        total: { level: 71.5, capacity: 2400, current: 1716 }
+      },
       data: [
         { metric: 'Engine', value: 85, fullMark: 100 },
         { metric: 'Fuel', value: 90, fullMark: 100 },
@@ -68,6 +73,11 @@ const Index = () => {
       speed: 0,
       course: 0,
       destination: 'ABERDEEN',
+      fuelTanks: {
+        tank1: { level: 45, capacity: 1000, current: 450 },
+        tank2: { level: 52, capacity: 1000, current: 520 },
+        total: { level: 48.5, capacity: 2000, current: 970 }
+      },
       data: [
         { metric: 'Engine', value: 60, fullMark: 100 },
         { metric: 'Fuel', value: 72, fullMark: 100 },
@@ -98,6 +108,11 @@ const Index = () => {
       speed: 12,
       course: 180,
       destination: 'KRISTIANSUND',
+      fuelTanks: {
+        tank1: { level: 88, capacity: 1100, current: 968 },
+        tank2: { level: 92, capacity: 1100, current: 1012 },
+        total: { level: 90, capacity: 2200, current: 1980 }
+      },
       data: [
         { metric: 'Engine', value: 95, fullMark: 100 },
         { metric: 'Fuel', value: 91, fullMark: 100 },
@@ -128,6 +143,11 @@ const Index = () => {
       speed: 8,
       course: 90,
       destination: 'STOCKHOLM',
+      fuelTanks: {
+        tank1: { level: 62, capacity: 1150, current: 713 },
+        tank2: { level: 58, capacity: 1150, current: 667 },
+        total: { level: 60, capacity: 2300, current: 1380 }
+      },
       data: [
         { metric: 'Engine', value: 82, fullMark: 100 },
         { metric: 'Fuel', value: 79, fullMark: 100 },
@@ -158,6 +178,11 @@ const Index = () => {
       speed: 0,
       course: 0,
       destination: 'ROTTERDAM',
+      fuelTanks: {
+        tank1: { level: 95, capacity: 1000, current: 950 },
+        tank2: { level: 93, capacity: 1000, current: 930 },
+        total: { level: 94, capacity: 2000, current: 1880 }
+      },
       data: [
         { metric: 'Engine', value: 85, fullMark: 100 },
         { metric: 'Fuel', value: 0, fullMark: 100 },
@@ -188,6 +213,11 @@ const Index = () => {
       speed: 10,
       course: 270,
       destination: 'CORK',
+      fuelTanks: {
+        tank1: { level: 72, capacity: 1100, current: 792 },
+        tank2: { level: 69, capacity: 1100, current: 759 },
+        total: { level: 70.5, capacity: 2200, current: 1551 }
+      },
       data: [
         { metric: 'Engine', value: 88, fullMark: 100 },
         { metric: 'Fuel', value: 84, fullMark: 100 },
@@ -218,6 +248,11 @@ const Index = () => {
       speed: 6,
       course: 45,
       destination: 'COPENHAGEN',
+      fuelTanks: {
+        tank1: { level: 81, capacity: 1150, current: 932 },
+        tank2: { level: 85, capacity: 1150, current: 978 },
+        total: { level: 83, capacity: 2300, current: 1910 }
+      },
       data: [
         { metric: 'Engine', value: 90, fullMark: 100 },
         { metric: 'Fuel', value: 88, fullMark: 100 },
@@ -248,6 +283,11 @@ const Index = () => {
       speed: 14,
       course: 330,
       destination: 'HAMMERFEST',
+      fuelTanks: {
+        tank1: { level: 55, capacity: 1200, current: 660 },
+        tank2: { level: 48, capacity: 1200, current: 576 },
+        total: { level: 51.5, capacity: 2400, current: 1236 }
+      },
       data: [
         { metric: 'Engine', value: 89, fullMark: 100 },
         { metric: 'Fuel', value: 86, fullMark: 100 },
@@ -337,6 +377,20 @@ const Index = () => {
       case 'idle': return <AlertTriangle className="h-4 w-4" />;
       default: return <AlertTriangle className="h-4 w-4" />;
     }
+  };
+
+  const getFuelLevelColor = (level: number) => {
+    if (level >= 75) return 'text-green-600';
+    if (level >= 50) return 'text-yellow-600';
+    if (level >= 25) return 'text-orange-600';
+    return 'text-red-600';
+  };
+
+  const getFuelLevelBgColor = (level: number) => {
+    if (level >= 75) return 'bg-green-500';
+    if (level >= 50) return 'bg-yellow-500';
+    if (level >= 25) return 'bg-orange-500';
+    return 'bg-red-500';
   };
 
   const chartConfig = {
@@ -588,6 +642,45 @@ const Index = () => {
                       </RadarChart>
                     </ResponsiveContainer>
                   </ChartContainer>
+                </div>
+
+                {/* Fuel Tank Status */}
+                <div className="mb-4 p-3 bg-slate-50 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Droplets className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-slate-700">Fuel Status</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-600">Total Level</span>
+                      <span className={`font-semibold ${getFuelLevelColor(vessel.fuelTanks.total.level)}`}>
+                        {vessel.fuelTanks.total.level}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${getFuelLevelBgColor(vessel.fuelTanks.total.level)}`}
+                        style={{ width: `${vessel.fuelTanks.total.level}%` }}
+                      ></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Tank 1:</span>
+                        <span className={`font-medium ${getFuelLevelColor(vessel.fuelTanks.tank1.level)}`}>
+                          {vessel.fuelTanks.tank1.level}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Tank 2:</span>
+                        <span className={`font-medium ${getFuelLevelColor(vessel.fuelTanks.tank2.level)}`}>
+                          {vessel.fuelTanks.tank2.level}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      {vessel.fuelTanks.total.current}L / {vessel.fuelTanks.total.capacity}L
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="space-y-2 text-sm">
