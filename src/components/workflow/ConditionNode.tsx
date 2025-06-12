@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, Node } from '@xyflow/react';
 import { GitBranch } from 'lucide-react';
 
 interface ConditionNodeData {
@@ -8,7 +8,7 @@ interface ConditionNodeData {
   condition?: string;
 }
 
-const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data, selected }) => {
+const ConditionNode: React.FC<NodeProps<Node<ConditionNodeData>>> = ({ data, selected }) => {
   return (
     <div className={`px-4 py-2 shadow-md rounded-md bg-green-50 border-2 ${selected ? 'border-green-500' : 'border-green-200'}`}>
       <div className="flex items-center space-x-2">

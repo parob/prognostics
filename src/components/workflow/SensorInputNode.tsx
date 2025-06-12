@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, Node } from '@xyflow/react';
 import { Activity } from 'lucide-react';
 
 interface SensorInputNodeData {
@@ -8,7 +8,7 @@ interface SensorInputNodeData {
   sensorType?: string;
 }
 
-const SensorInputNode: React.FC<NodeProps<SensorInputNodeData>> = ({ data, selected }) => {
+const SensorInputNode: React.FC<NodeProps<Node<SensorInputNodeData>>> = ({ data, selected }) => {
   return (
     <div className={`px-4 py-2 shadow-md rounded-md bg-blue-50 border-2 ${selected ? 'border-blue-500' : 'border-blue-200'}`}>
       <div className="flex items-center space-x-2">

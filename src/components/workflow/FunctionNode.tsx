@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, Node } from '@xyflow/react';
 import { Code } from 'lucide-react';
 
 interface FunctionNodeData {
@@ -8,7 +8,7 @@ interface FunctionNodeData {
   functionName?: string;
 }
 
-const FunctionNode: React.FC<NodeProps<FunctionNodeData>> = ({ data, selected }) => {
+const FunctionNode: React.FC<NodeProps<Node<FunctionNodeData>>> = ({ data, selected }) => {
   return (
     <div className={`px-4 py-2 shadow-md rounded-md bg-purple-50 border-2 ${selected ? 'border-purple-500' : 'border-purple-200'}`}>
       <div className="flex items-center space-x-2">

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, Node } from '@xyflow/react';
 import { Bell } from 'lucide-react';
 
 interface AlertNodeData {
@@ -8,7 +8,7 @@ interface AlertNodeData {
   alertType?: string;
 }
 
-const AlertNode: React.FC<NodeProps<AlertNodeData>> = ({ data, selected }) => {
+const AlertNode: React.FC<NodeProps<Node<AlertNodeData>>> = ({ data, selected }) => {
   return (
     <div className={`px-4 py-2 shadow-md rounded-md bg-orange-50 border-2 ${selected ? 'border-orange-500' : 'border-orange-200'}`}>
       <div className="flex items-center space-x-2">
